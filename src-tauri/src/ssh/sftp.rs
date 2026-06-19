@@ -130,4 +130,25 @@ impl SftpClient {
             .map_err(|e| AppError::Sftp(format!("write_file '{}': {}", path, e)))?;
         Ok(())
     }
+
+    /// Open a remote file for chunked reading. Returns file size.
+    pub async fn open_read(&mut self, path: &str) -> Result<(russh_sftp::client::fs::File, u64), AppError> {
+        let file = self.session
+            .open(path)
+            .await
+            .map_err(|e| AppError::Sftp(format!("open_read '{}': {}", path, e)))?;
+        let meta = self.session
+            .metadata(path)
+            .await
+            .map_err(|e| AppError::Sftp(format!("metadata '{}': {}", path, e)))?;
+        Ok((file, meta.len()))
+    }
+
+    /// Open a remote file for chunked writing (creates or truncates).
+    pub async fn open_write(&mut self, path: &str) -> Result<russh_sftp::client::fs::File, AppError> {
+        self.session
+            .create(path)
+            .await
+            .map_err(|e| AppError::Sftp(format!("open_write '{}': {}", path, e)))
+    }
 }

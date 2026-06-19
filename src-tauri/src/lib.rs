@@ -9,9 +9,16 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use commands::connection::ConnectionManager;
 use commands::terminal::TerminalChannels;
+use storage::db::Database;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let app_dir = dirs::data_dir()
+        .unwrap_or_else(|| std::path::PathBuf::from("."))
+        .join("ssh-tool");
+
+    let database = Database::new(app_dir).expect("Failed to initialize database");
+
     tauri::Builder::default()
         .manage(ConnectionManager {
             sessions: Mutex::new(HashMap::new()),
@@ -19,12 +26,18 @@ pub fn run() {
         .manage(TerminalChannels {
             writers: Arc::new(Mutex::new(HashMap::new())),
         })
+        .manage(database)
         .invoke_handler(tauri::generate_handler![
             commands::connection::connect,
             commands::connection::disconnect,
             commands::terminal::term_open,
             commands::terminal::term_write,
             commands::terminal::term_resize,
+            commands::settings::save_connection,
+            commands::settings::list_connections,
+            commands::settings::delete_connection,
+            commands::settings::store_password,
+            commands::settings::get_password,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

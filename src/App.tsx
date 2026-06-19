@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ConnectionDialog from './components/dialogs/ConnectionDialog';
+import ConnectionList from './components/sidebar/ConnectionList';
 import TerminalPanel from './components/terminal/TerminalPanel';
 
 function App() {
@@ -17,10 +18,10 @@ function App() {
       >
         <div className="w-[260px] h-full flex flex-col p-3">
           <div className="text-sm font-semibold text-gray-400 mb-4">CONNECTIONS</div>
-          <div className="flex-1" />
+          <ConnectionList onNewConnection={() => setDialogOpen(true)} />
           <button
             onClick={() => setDialogOpen(true)}
-            className="w-full py-2 text-sm bg-blue-600 hover:bg-blue-500 rounded transition-colors"
+            className="w-full py-2 mt-2 text-sm bg-blue-600 hover:bg-blue-500 rounded transition-colors"
           >
             + New Connection
           </button>
@@ -29,7 +30,6 @@ function App() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col">
-        {/* Title bar (draggable region) */}
         <div
           data-tauri-drag-region
           className="h-10 flex items-center px-4 bg-gray-900 border-b border-gray-800 shrink-0"
@@ -43,7 +43,6 @@ function App() {
           <span className="text-xs text-gray-500">SSH Tool</span>
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-h-0">
           {activeConnectionId ? (
             <TerminalPanel connectionId={activeConnectionId} />

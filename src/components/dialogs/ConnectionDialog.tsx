@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { useConnectionStore } from '../../stores/connectionStore';
 
 interface Props {
   open: boolean;
@@ -16,6 +17,8 @@ export default function ConnectionDialog({ open, onClose, onConnected }: Props) 
   const [showPassword, setShowPassword] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState('');
+  const [saveConnection, setSaveConnection] = useState(true);
+  const addConnection = useConnectionStore((s) => s.addConnection);
 
   if (!open) return null;
 
@@ -33,6 +36,30 @@ export default function ConnectionDialog({ open, onClose, onConnected }: Props) 
         username,
         password,
       });
+
+      // Save connection config to SQLite
+      if (saveConnection) {
+        const now = Date.now();
+        await invoke('save_connection', {
+          conn: {
+            id,
+            name: name || `${username}@${host}`,
+            host,
+            port: parseInt(port) || 22,
+            username,
+            auth_method: 'password',
+            group_name: 'Default',
+            created_at: now,
+            updated_at: now,
+          },
+        }).catch(console.error);
+
+        // Store password in OS keychain
+        if (password) {
+          await invoke('store_password', { connection_id: id, password }).catch(console.error);
+        }
+      }
+
       onConnected(id);
       onClose();
     } catch (e: any) {
@@ -56,8 +83,14 @@ export default function ConnectionDialog({ open, onClose, onConnected }: Props) 
         <div className="space-y-3">
           <Field label="Name" value={name} onChange={setName} placeholder="My Server" />
           <Field label="Host" value={host} onChange={setHost} placeholder="192.168.1.100" />
-          <Field label="Port" value={port} onChange={setPort} placeholder="22" />
-          <Field label="Username" value={username} onChange={setUsername} placeholder="root" />
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <Field label="Username" value={username} onChange={setUsername} placeholder="root" />
+            </div>
+            <div className="w-24">
+              <Field label="Port" value={port} onChange={setPort} placeholder="22" />
+            </div>
+          </div>
 
           <div>
             <label className="block text-xs text-gray-400 mb-1">Password</label>
@@ -73,13 +106,23 @@ export default function ConnectionDialog({ open, onClose, onConnected }: Props) 
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300 text-sm"
                 tabIndex={-1}
               >
                 {showPassword ? '🙈' : '👁'}
               </button>
             </div>
           </div>
+
+          <label className="flex items-center gap-2 text-sm text-gray-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={saveConnection}
+              onChange={(e) => setSaveConnection(e.target.checked)}
+              className="rounded bg-gray-800 border-gray-700"
+            />
+            Save connection for later
+          </label>
         </div>
 
         <div className="flex justify-end gap-2 mt-6">

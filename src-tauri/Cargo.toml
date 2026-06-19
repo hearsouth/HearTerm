@@ -25,6 +25,7 @@ argon2 = "0.5"
 sha2 = "0.10"
 hex = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
+dirs = "5"
 thiserror = "1"
 anyhow = "1"
 async-trait = "0.1"

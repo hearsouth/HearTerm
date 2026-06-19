@@ -1,0 +1,1 @@
+["/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/tauri-2.11.3/scripts/bundle.global.js"]

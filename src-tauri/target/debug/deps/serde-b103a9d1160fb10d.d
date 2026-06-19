@@ -1,0 +1,14 @@
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/serde-b103a9d1160fb10d.d: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/integer128.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/mod.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/de.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/ser.rs /Users/hearsouth/ssh-tool/src-tauri/target/debug/build/serde-ff1d15bc2605d2c9/out/private.rs
+
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/libserde-b103a9d1160fb10d.rlib: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/integer128.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/mod.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/de.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/ser.rs /Users/hearsouth/ssh-tool/src-tauri/target/debug/build/serde-ff1d15bc2605d2c9/out/private.rs
+
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/libserde-b103a9d1160fb10d.rmeta: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/integer128.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/mod.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/de.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/ser.rs /Users/hearsouth/ssh-tool/src-tauri/target/debug/build/serde-ff1d15bc2605d2c9/out/private.rs
+
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/lib.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/integer128.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/mod.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/de.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/serde-1.0.228/src/private/ser.rs:
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/build/serde-ff1d15bc2605d2c9/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/hearsouth/ssh-tool/src-tauri/target/debug/build/serde-ff1d15bc2605d2c9/out

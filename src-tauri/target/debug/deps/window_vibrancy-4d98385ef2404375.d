@@ -1,0 +1,9 @@
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/window_vibrancy-4d98385ef2404375.d: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/mod.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/internal.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/ns_visual_effect_view_tagged.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/windows.rs
+
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/libwindow_vibrancy-4d98385ef2404375.rmeta: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/mod.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/internal.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/ns_visual_effect_view_tagged.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/windows.rs
+
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/lib.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/mod.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/internal.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/macos/ns_visual_effect_view_tagged.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/window-vibrancy-0.6.0/src/windows.rs:

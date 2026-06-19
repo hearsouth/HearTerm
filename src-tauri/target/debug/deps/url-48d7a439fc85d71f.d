@@ -1,0 +1,11 @@
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/url-48d7a439fc85d71f.d: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/host.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/origin.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/parser.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/path_segments.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/slicing.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/quirks.rs
+
+/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/liburl-48d7a439fc85d71f.rmeta: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/host.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/origin.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/parser.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/path_segments.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/slicing.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/quirks.rs
+
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/lib.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/host.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/origin.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/parser.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/path_segments.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/slicing.rs:
+/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/url-2.5.8/src/quirks.rs:

@@ -1,1 +1,4 @@
-node_modules\ndist\nsrc-tauri/target\n.DS_Store
+node_modules
+dist
+src-tauri/target
+.DS_Store

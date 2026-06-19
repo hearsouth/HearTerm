@@ -1,6 +1,9 @@
 use std::net::ToSocketAddrs;
 use std::sync::Arc;
 use russh::client::Handle;
+use russh::client::Msg;
+use russh::Channel;
+use russh::ChannelMsg;
 use russh::keys::key::PublicKey;
 use crate::error::AppError;
 use crate::ssh::config::{HostKeyStore, fingerprint};
@@ -8,6 +11,51 @@ use crate::ssh::config::{HostKeyStore, fingerprint};
 pub struct SshSession {
     pub handle: Handle<ClientHandler>,
     host_key_store: HostKeyStore,
+}
+
+/// An open shell channel with read/write access.
+pub struct ShellChannel {
+    pub channel: Channel<Msg>,
+    pub connection_id: String,
+}
+
+impl ShellChannel {
+    /// Send data to the remote shell's stdin.
+    pub async fn write(&mut self, data: &[u8]) -> Result<(), AppError> {
+        let cursor = std::io::Cursor::new(data.to_vec());
+        self.channel
+            .data(cursor)
+            .await
+            .map_err(|e| AppError::Ssh(format!("Write failed: {}", e)))
+    }
+
+    /// Read available data from the remote shell's stdout/stderr.
+    /// Returns the number of bytes read. Returns 0 on EOF.
+    pub async fn read(&mut self, buf: &mut [u8]) -> Result<usize, AppError> {
+        match self.channel.wait().await {
+            Some(ChannelMsg::Data { ref data }) => {
+                let len = data.len().min(buf.len());
+                buf[..len].copy_from_slice(&data[..len]);
+                Ok(len)
+            }
+            Some(ChannelMsg::ExtendedData { ref data, .. }) => {
+                let len = data.len().min(buf.len());
+                buf[..len].copy_from_slice(&data[..len]);
+                Ok(len)
+            }
+            Some(ChannelMsg::Eof) | Some(ChannelMsg::Close) => Ok(0),
+            None => Ok(0),
+            _ => Ok(0),
+        }
+    }
+
+    /// Resize the PTY (e.g., when terminal window size changes).
+    pub async fn resize(&mut self, cols: u32, rows: u32) -> Result<(), AppError> {
+        self.channel
+            .window_change(cols, rows, 0, 0)
+            .await
+            .map_err(|e| AppError::Ssh(format!("Resize failed: {}", e)))
+    }
 }
 
 impl SshSession {
@@ -51,6 +99,32 @@ impl SshSession {
         Ok(SshSession {
             handle: client,
             host_key_store: store,
+        })
+    }
+
+    /// Open an interactive shell session with PTY allocation.
+    pub async fn open_shell(&mut self, connection_id: &str) -> Result<ShellChannel, AppError> {
+        let channel = self
+            .handle
+            .channel_open_session()
+            .await
+            .map_err(|e| AppError::Ssh(format!("Failed to open session channel: {}", e)))?;
+
+        // Request PTY
+        channel
+            .request_pty(false, "xterm-256color", 80, 24, 0, 0, &[])
+            .await
+            .map_err(|e| AppError::Ssh(format!("PTY request failed: {}", e)))?;
+
+        // Start shell
+        channel
+            .request_shell(false)
+            .await
+            .map_err(|e| AppError::Ssh(format!("Shell request failed: {}", e)))?;
+
+        Ok(ShellChannel {
+            channel,
+            connection_id: connection_id.to_string(),
         })
     }
 }

@@ -2,11 +2,15 @@ import { useState } from 'react';
 import ConnectionDialog from './components/dialogs/ConnectionDialog';
 import ConnectionList from './components/sidebar/ConnectionList';
 import TerminalPanel from './components/terminal/TerminalPanel';
+import FilePanel from './components/files/FilePanel';
+
+type Tab = 'terminal' | 'files';
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [activeConnectionId, setActiveConnectionId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<Tab>('terminal');
 
   return (
     <div className="flex h-screen bg-gray-950 text-gray-100 overflow-hidden">
@@ -32,20 +36,50 @@ function App() {
       <div className="flex-1 flex flex-col">
         <div
           data-tauri-drag-region
-          className="h-10 flex items-center px-4 bg-gray-900 border-b border-gray-800 shrink-0"
+          className="h-10 flex items-center px-4 bg-gray-900 border-b border-gray-800 shrink-0 gap-3"
         >
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-500 hover:text-gray-300 text-sm mr-3"
+            className="text-gray-500 hover:text-gray-300 text-sm"
           >
             ☰
           </button>
           <span className="text-xs text-gray-500">SSH Tool</span>
+
+          {/* Tabs */}
+          {activeConnectionId && (
+            <div className="flex gap-1 ml-4">
+              <button
+                onClick={() => setActiveTab('terminal')}
+                className={`px-3 py-1 text-xs rounded-t transition-colors ${
+                  activeTab === 'terminal'
+                    ? 'bg-gray-950 text-gray-200'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                Terminal
+              </button>
+              <button
+                onClick={() => setActiveTab('files')}
+                className={`px-3 py-1 text-xs rounded-t transition-colors ${
+                  activeTab === 'files'
+                    ? 'bg-gray-950 text-gray-200'
+                    : 'text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                Files
+              </button>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 min-h-0">
           {activeConnectionId ? (
-            <TerminalPanel connectionId={activeConnectionId} />
+            activeTab === 'terminal' ? (
+              <TerminalPanel connectionId={activeConnectionId} />
+            ) : (
+              <FilePanel connectionId={activeConnectionId} />
+            )
           ) : (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
@@ -63,6 +97,7 @@ function App() {
         onClose={() => setDialogOpen(false)}
         onConnected={(id) => {
           setActiveConnectionId(id);
+          setActiveTab('terminal');
           setDialogOpen(false);
         }}
       />

@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use commands::connection::ConnectionManager;
 use commands::terminal::TerminalChannels;
+use commands::sftp::SftpClients;
 use storage::db::Database;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -26,6 +27,9 @@ pub fn run() {
         .manage(TerminalChannels {
             writers: Arc::new(Mutex::new(HashMap::new())),
         })
+        .manage(SftpClients {
+            clients: Mutex::new(HashMap::new()),
+        })
         .manage(database)
         .invoke_handler(tauri::generate_handler![
             commands::connection::connect,
@@ -38,6 +42,10 @@ pub fn run() {
             commands::settings::delete_connection,
             commands::settings::store_password,
             commands::settings::get_password,
+            commands::sftp::sftp_list,
+            commands::sftp::sftp_mkdir,
+            commands::sftp::sftp_delete,
+            commands::sftp::sftp_rename,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

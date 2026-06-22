@@ -1,9 +1,0 @@
-/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/unicode_segmentation-1886156d1c9c223e.d: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/grapheme.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/sentence.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/word.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/tables.rs
-
-/Users/hearsouth/ssh-tool/src-tauri/target/debug/deps/libunicode_segmentation-1886156d1c9c223e.rmeta: /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/lib.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/grapheme.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/sentence.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/word.rs /Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/tables.rs
-
-/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/lib.rs:
-/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/grapheme.rs:
-/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/sentence.rs:
-/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/word.rs:
-/Users/hearsouth/.cargo/registry/src/mirrors.ustc.edu.cn-38d0e5eb5da2abae/unicode-segmentation-1.13.3/src/tables.rs:

@@ -25,6 +25,7 @@ export default function TerminalPanel({ terminalId, connectionId }: Props) {
       cursorBlink: true,
       fontSize: 14,
       fontFamily: 'JetBrains Mono, monospace',
+      scrollback: 10000,
       theme: {
         background: '#1a1b26',
         foreground: '#a9b1d6',
@@ -81,15 +82,15 @@ export default function TerminalPanel({ terminalId, connectionId }: Props) {
     // Open terminal channel on backend
     invoke('term_open', { terminalId, connectionId }).catch(console.error);
 
-    // Handle window resize
-    const handleResize = () => {
+    // Handle container resize (splitter drag, etc.)
+    const resizeObserver = new ResizeObserver(() => {
       fitAddon.fit();
-    };
-    window.addEventListener('resize', handleResize);
+    });
+    resizeObserver.observe(termRef.current);
 
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       term.dispose();
     };
   }, [terminalId, connectionId]);

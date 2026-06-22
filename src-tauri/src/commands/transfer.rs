@@ -1,11 +1,25 @@
 use tauri::{AppHandle, Emitter, State};
+use crate::commands::connection::ConnectionManager;
 use crate::commands::sftp::SftpClients;
 use crate::storage::db::Database;
 use crate::transfer::engine;
 
+async fn get_or_create_sftp(
+    sftp_state: &SftpClients,
+    state: &ConnectionManager,
+    connection_id: &str,
+) -> Result<crate::ssh::sftp::SftpClient, String> {
+    let existing = sftp_state.clients.lock().unwrap().remove(connection_id);
+    if let Some(client) = existing { return Ok(client); }
+    let sessions = state.sessions.lock().await;
+    let session = sessions.get(connection_id).ok_or("Connection not found")?;
+    crate::ssh::sftp::SftpClient::from_session(session).await.map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 pub async fn transfer_upload(
     sftp_state: State<'_, SftpClients>,
+    state: State<'_, ConnectionManager>,
     db: State<'_, Database>,
     app: AppHandle,
     connection_id: String,
@@ -27,18 +41,20 @@ pub async fn transfer_upload(
         rusqlite::params![transfer_id, connection_id, remote_path, local_path, now],
     ).map_err(|e| e.to_string())?;
 
-    let mut client = {
-        sftp_state.clients.lock().unwrap()
-            .remove(&connection_id)
-            .ok_or("SFTP session not open")?
-    };
+    let mut client = get_or_create_sftp(&sftp_state, &state, &connection_id).await?;
 
     let tid = transfer_id.clone();
     let app2 = app.clone();
     let db2 = db.conn.clone();
 
     tokio::spawn(async move {
-        let result = engine::upload_file(&mut client, &local_path, &remote_path, &tid, &app2).await;
+        // Auto-detect directory
+        let is_dir = tokio::fs::metadata(&local_path).await.map(|m| m.is_dir()).unwrap_or(false);
+        let result = if is_dir {
+            engine::upload_dir(&mut client, &local_path, &remote_path, &tid, &app2).await
+        } else {
+            engine::upload_file(&mut client, &local_path, &remote_path, &tid, &app2).await
+        };
 
         match result {
             Ok(()) => {
@@ -66,6 +82,7 @@ pub async fn transfer_upload(
 #[tauri::command]
 pub async fn transfer_download(
     sftp_state: State<'_, SftpClients>,
+    state: State<'_, ConnectionManager>,
     db: State<'_, Database>,
     app: AppHandle,
     connection_id: String,
@@ -86,18 +103,24 @@ pub async fn transfer_download(
         rusqlite::params![transfer_id, connection_id, remote_path, local_path, now],
     ).map_err(|e| e.to_string())?;
 
-    let mut client = {
-        sftp_state.clients.lock().unwrap()
-            .remove(&connection_id)
-            .ok_or("SFTP session not open")?
-    };
+    let mut client = get_or_create_sftp(&sftp_state, &state, &connection_id).await?;
 
     let tid = transfer_id.clone();
     let app2 = app.clone();
     let db2 = db.conn.clone();
 
     tokio::spawn(async move {
-        let result = engine::download_file(&mut client, &remote_path, &local_path, &tid, &app2).await;
+        // Detect if remote path is a directory
+        let is_dir = match client.metadata(&remote_path).await {
+            Ok(meta) => meta.is_dir,
+            Err(_) => false,
+        };
+
+        let result = if is_dir {
+            engine::download_dir(&mut client, &remote_path, &local_path, &tid, &app2).await
+        } else {
+            engine::download_file(&mut client, &remote_path, &local_path, &tid, &app2).await
+        };
 
         match result {
             Ok(()) => {

@@ -47,6 +47,33 @@ pub async fn upload_file(
     Ok(())
 }
 
+/// Recursively upload a local directory to a remote path.
+pub async fn upload_dir(
+    sftp: &mut SftpClient,
+    local_dir: &str,
+    remote_dir: &str,
+    transfer_id: &str,
+    app: &AppHandle,
+) -> Result<(), AppError> {
+    // Create remote directory
+    if let Err(e) = sftp.mkdir(remote_dir).await {
+        // Ignore "already exists" errors
+        let _ = e;
+    }
+    let mut entries = tokio::fs::read_dir(local_dir).await?;
+    while let Some(entry) = entries.next_entry().await? {
+        let name = entry.file_name().to_string_lossy().to_string();
+        let local_path = format!("{}/{}", local_dir.trim_end_matches('/'), name);
+        let remote_path = format!("{}/{}", remote_dir.trim_end_matches('/'), name);
+        if entry.file_type().await?.is_dir() {
+            Box::pin(upload_dir(sftp, &local_path, &remote_path, transfer_id, app)).await?;
+        } else {
+            upload_file(sftp, &local_path, &remote_path, transfer_id, app).await?;
+        }
+    }
+    Ok(())
+}
+
 /// Download a remote file to a local path, emitting progress events.
 pub async fn download_file(
     sftp: &mut SftpClient,
@@ -81,5 +108,27 @@ pub async fn download_file(
     }
 
     file.shutdown().await.ok();
+    Ok(())
+}
+
+/// Recursively download a remote directory to a local path.
+pub async fn download_dir(
+    sftp: &mut SftpClient,
+    remote_dir: &str,
+    local_dir: &str,
+    transfer_id: &str,
+    app: &AppHandle,
+) -> Result<(), AppError> {
+    tokio::fs::create_dir_all(local_dir).await?;
+    let entries = sftp.list(remote_dir).await?;
+    for entry in entries {
+        let remote_path = format!("{}/{}", remote_dir.trim_end_matches('/'), entry.name);
+        let local_path = format!("{}/{}", local_dir.trim_end_matches('/'), entry.name);
+        if entry.is_dir {
+            Box::pin(download_dir(sftp, &remote_path, &local_path, transfer_id, app)).await?;
+        } else {
+            download_file(sftp, &remote_path, &local_path, transfer_id, app).await?;
+        }
+    }
     Ok(())
 }

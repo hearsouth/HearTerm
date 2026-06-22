@@ -1,63 +1,209 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useConnectionStore, Connection } from '../../stores/connectionStore';
 
 interface Props {
   onNewConnection: () => void;
+  onEditConnection: (conn: Connection) => void;
+  onConnect: (id: string) => void;
 }
 
-export default function ConnectionList({ onNewConnection }: Props) {
-  const { connections, setConnections, activeId, setActive, removeConnection } =
-    useConnectionStore();
+export default function ConnectionList({ onNewConnection, onEditConnection, onConnect }: Props) {
+  const { connections, setConnections, activeId } = useConnectionStore();
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteGroup, setConfirmDeleteGroup] = useState<string | null>(null);
+  const [connectError, setConnectError] = useState('');
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [editingGroup, setEditingGroup] = useState<string | null>(null);
+  const [editGroupName, setEditGroupName] = useState('');
+  const [showNewGroup, setShowNewGroup] = useState(false);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [allGroups, setAllGroups] = useState<string[]>([]);
+  const [moveMenuConnId, setMoveMenuConnId] = useState<string | null>(null);
+  const confirmTimer = useRef<ReturnType<typeof setTimeout>>();
 
+  const refresh = () => {
+    Promise.all([
+      invoke<Connection[]>('list_connections'),
+      invoke<string[]>('list_groups'),
+    ]).then(([conns, groups]) => {
+      setConnections(conns);
+      setAllGroups(groups);
+    }).catch(console.error);
+  };
+
+  useEffect(() => { refresh(); }, []);
+
+  // Close move menu on outside click
   useEffect(() => {
-    invoke<Connection[]>('list_connections')
-      .then(setConnections)
-      .catch(console.error);
-  }, [setConnections]);
+    if (!moveMenuConnId) return;
+    const handler = () => setMoveMenuConnId(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [moveMenuConnId]);
 
-  const handleContextMenu = (e: React.MouseEvent, conn: Connection) => {
-    e.preventDefault();
-    // Simple context menu — will be enhanced in Task 2.6
-    const action = window.confirm(`Delete connection "${conn.name}"?`);
-    if (action) {
-      invoke('delete_connection', { id: conn.id })
-        .then(() => removeConnection(conn.id))
-        .catch(console.error);
+  const grouped = useMemo(() => {
+    const map: Record<string, Connection[]> = {};
+    for (const g of new Set([...allGroups, ...connections.map(c => c.group_name || '默认')])) {
+      map[g] = [];
     }
+    for (const c of connections) {
+      const g = c.group_name || '默认';
+      map[g].push(c);
+    }
+    return map;
+  }, [connections, allGroups]);
+
+  const toggleGroup = (group: string) => {
+    setCollapsedGroups(prev => { const n = new Set(prev); n.has(group) ? n.delete(group) : n.add(group); return n; });
+  };
+
+  const handleConnectClick = async (conn: Connection) => {
+    setConnectError('');
+    try { await onConnect(conn.id); }
+    catch (e: any) { setConnectError(typeof e === 'string' ? e : e?.message || '连接失败'); }
+  };
+
+  const startRename = (group: string) => { setEditingGroup(group); setEditGroupName(group); };
+  const confirmRename = async () => {
+    if (!editingGroup || !editGroupName || editGroupName === editingGroup) { setEditingGroup(null); return; }
+    try { await invoke('rename_group', { oldName: editingGroup, newName: editGroupName }); refresh(); }
+    catch (e: any) { setConnectError(e?.toString() || '重命名失败'); }
+    setEditingGroup(null);
+  };
+
+  const deleteGroupFn = async (group: string) => {
+    if (confirmDeleteGroup !== group) { setConfirmDeleteGroup(group); return; }
+    setConfirmDeleteGroup(null);
+    try { await invoke('delete_group', { groupName: group }); refresh(); }
+    catch (e: any) { setConnectError(e?.toString() || '删除分组失败'); }
+  };
+
+  const createGroup = async () => {
+    const name = newGroupName.trim();
+    if (!name) return;
+    try {
+      await invoke('create_group', { name });
+      refresh();
+      setCollapsedGroups(prev => { const n = new Set(prev); n.delete(name); return n; });
+    } catch (e: any) { setConnectError(e?.toString() || '创建分组失败'); }
+    setShowNewGroup(false);
+    setNewGroupName('');
+  };
+
+  const moveToGroup = async (connId: string, groupName: string) => {
+    setMoveMenuConnId(null);
+    try { await invoke('move_to_group', { connectionId: connId, groupName }); refresh(); }
+    catch (e: any) { setConnectError(e?.toString() || '移动失败'); }
+  };
+
+  const handleDeleteClick = (conn: Connection) => {
+    if (confirmDeleteId !== conn.id) { setConfirmDeleteId(conn.id); clearTimeout(confirmTimer.current); confirmTimer.current = setTimeout(() => setConfirmDeleteId(null), 4000); return; }
+    setConfirmDeleteId(null); clearTimeout(confirmTimer.current); doDelete(conn);
+  };
+  const doDelete = async (conn: Connection) => {
+    setDeleting(conn.id); setConnectError('');
+    try { await invoke('delete_connection', { id: conn.id }); refresh(); }
+    catch (e: any) { setConnectError(typeof e === 'string' ? e : e?.message || '删除失败'); }
+    finally { setDeleting(null); }
   };
 
   return (
     <div className="flex-1 overflow-y-auto space-y-0.5">
-      {connections.length === 0 ? (
+      {connectError && (
+        <div className="bg-red-900/40 text-red-300 px-2 py-1.5 rounded text-xs mb-1 flex justify-between">
+          <span>{connectError}</span>
+          <button onClick={() => setConnectError('')} className="text-red-400 hover:text-red-200 ml-2">✕</button>
+        </div>
+      )}
+      {Object.entries(grouped).length === 0 && connections.length === 0 ? (
         <p className="text-xs text-gray-600 px-2 py-4 text-center">
-          No saved connections.
-          <br />
-          <button
-            onClick={onNewConnection}
-            className="text-blue-400 hover:text-blue-300 mt-1"
-          >
-            Add one
-          </button>
+          暂无连接。<br />
+          <button onClick={onNewConnection} className="text-blue-400 hover:text-blue-300 mt-1">添加一个</button>
         </p>
       ) : (
-        connections.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setActive(c.id)}
-            onContextMenu={(e) => handleContextMenu(e, c)}
-            className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors ${
-              activeId === c.id
-                ? 'bg-blue-600/40 text-blue-300'
-                : 'hover:bg-gray-800 text-gray-400'
-            }`}
-          >
-            <div className="truncate font-medium">{c.name}</div>
-            <div className="text-xs text-gray-600 truncate">
-              {c.username}@{c.host}:{c.port}
+        Object.entries(grouped).map(([group, conns]) => (
+          <div key={group}>
+            <div className="flex items-center gap-1 px-1 py-1 rounded transition-colors">
+              <button onClick={() => toggleGroup(group)} className="text-[10px] text-gray-500 hover:text-gray-300">
+                {collapsedGroups.has(group) ? '▶' : '▼'}
+              </button>
+              {editingGroup === group ? (
+                <input value={editGroupName} onChange={e => setEditGroupName(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter') confirmRename(); if (e.key === 'Escape') setEditingGroup(null); }}
+                  onBlur={confirmRename}
+                  className="flex-1 bg-gray-700 border border-blue-500 rounded px-1 py-0 text-xs outline-none" autoFocus />
+              ) : (
+                <span className="font-medium text-xs text-gray-400">{group}</span>
+              )}
+              <span className="text-gray-600 text-[10px]">{conns.length}</span>
+              <div className="ml-auto flex gap-0.5 opacity-60 hover:opacity-100 transition-opacity">
+                <button onClick={() => startRename(group)} className="text-gray-600 hover:text-blue-400 text-[10px] px-0.5" title="重命名">✏️</button>
+                {confirmDeleteGroup === group ? (<>
+                  <button onClick={() => deleteGroupFn(group)} className="text-red-400 hover:text-red-300 text-[10px] px-0.5 font-bold">确认</button>
+                  <button onClick={() => setConfirmDeleteGroup(null)} className="text-gray-500 hover:text-gray-300 text-[10px] px-0.5">✕</button>
+                </>) : (
+                  <button onClick={() => deleteGroupFn(group)} className="text-gray-600 hover:text-red-400 text-[10px] px-0.5" title="删除分组">🗑</button>
+                )}
+              </div>
             </div>
-          </button>
+            {!collapsedGroups.has(group) && conns.map(c => (
+              <div key={c.id} className={`flex items-center rounded text-sm transition-colors ml-2 relative ${activeId === c.id ? 'bg-blue-600/40 text-blue-300' : 'hover:bg-gray-800 text-gray-400'}`}>
+                <button onDoubleClick={() => handleConnectClick(c)} onClick={() => handleConnectClick(c)}
+                  className="flex-1 text-left px-2 py-1.5 truncate min-w-0">
+                  <div className="truncate font-medium">{c.name}</div>
+                  <div className="text-xs text-gray-600 truncate">{c.username}@{c.host}:{c.port}</div>
+                </button>
+                <div className="flex items-center gap-0.5 pr-1 shrink-0">
+                  {/* Move to group */}
+                  <div className="relative">
+                    <button onClick={(e) => { e.stopPropagation(); setMoveMenuConnId(moveMenuConnId === c.id ? null : c.id); }}
+                      className="text-gray-500 hover:text-green-400 px-1 py-0.5 text-xs opacity-60 hover:opacity-100 transition-opacity" title="移动到分组">↗</button>
+                    {moveMenuConnId === c.id && (
+                      <div className="absolute right-0 top-full mt-1 z-50 bg-gray-800 border border-gray-700 rounded shadow-lg py-1 min-w-[120px]">
+                        {Object.keys(grouped).filter(g => g !== group).map(g => (
+                          <button key={g} onClick={(e) => { e.stopPropagation(); moveToGroup(c.id, g); }}
+                            className="w-full text-left px-3 py-1 text-xs text-gray-300 hover:bg-gray-700 transition-colors">
+                            {g}
+                          </button>
+                        ))}
+                        {Object.keys(grouped).filter(g => g !== group).length === 0 && (
+                          <div className="px-3 py-1 text-xs text-gray-600">无其他分组</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={(e) => { e.stopPropagation(); onEditConnection(c); }}
+                    className="text-gray-500 hover:text-blue-400 px-1 py-0.5 text-xs opacity-60 hover:opacity-100 transition-opacity" title="编辑">✏️</button>
+                  {confirmDeleteId === c.id ? (<>
+                    <button onClick={(e) => { e.stopPropagation(); doDelete(c); }}
+                      disabled={deleting === c.id} className="text-red-400 hover:text-red-300 px-1 py-0.5 text-xs font-bold disabled:opacity-30">确认</button>
+                    <button onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); clearTimeout(confirmTimer.current); }}
+                      className="text-gray-500 hover:text-gray-300 px-0.5 py-0.5 text-xs">✕</button>
+                  </>) : (
+                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(c); }}
+                      className="text-gray-500 hover:text-red-400 px-1 py-0.5 text-xs opacity-60 hover:opacity-100 transition-opacity" title="删除">🗑</button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         ))
+      )}
+      {showNewGroup ? (
+        <div className="flex items-center gap-1 px-1 py-1">
+          <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') createGroup(); if (e.key === 'Escape') { setShowNewGroup(false); setNewGroupName(''); } }}
+            placeholder="输入分组名称" autoFocus
+            className="flex-1 bg-gray-700 border border-blue-500 rounded px-2 py-0.5 text-xs outline-none" />
+          <button onClick={createGroup} className="text-xs text-blue-400 hover:text-blue-300 px-1">✓</button>
+          <button onClick={() => { setShowNewGroup(false); setNewGroupName(''); }} className="text-xs text-gray-500 hover:text-gray-300 px-1">✕</button>
+        </div>
+      ) : (
+        <button onClick={() => setShowNewGroup(true)} className="w-full text-xs text-gray-600 hover:text-gray-400 py-1 text-left px-1">
+          + 新建分组
+        </button>
       )}
     </div>
   );

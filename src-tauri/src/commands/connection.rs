@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use tauri::State;
 use crate::ssh::session::SshSession;
 
@@ -20,7 +20,7 @@ pub async fn connect(
         .await
         .map_err(|e| e.to_string())?;
 
-    state.sessions.lock().unwrap().insert(id, session);
+    state.sessions.lock().await.insert(id, session);
     Ok(())
 }
 
@@ -29,11 +29,7 @@ pub async fn disconnect(
     state: State<'_, ConnectionManager>,
     id: String,
 ) -> Result<(), String> {
-    // Extract session from the map first (drop the lock before awaiting)
-    let session = {
-        let mut sessions = state.sessions.lock().unwrap();
-        sessions.remove(&id)
-    };
+    let session = state.sessions.lock().await.remove(&id);
 
     if let Some(session) = session {
         session

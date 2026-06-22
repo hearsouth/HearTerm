@@ -61,6 +61,16 @@ impl Database {
                 key   TEXT PRIMARY KEY,
                 value TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS passwords (
+                connection_id   TEXT PRIMARY KEY,
+                encrypted_password TEXT NOT NULL
+            );
+
+            CREATE TABLE IF NOT EXISTS groups (
+                name TEXT PRIMARY KEY,
+                created_at INTEGER NOT NULL
+            );
             "
         )?;
         Ok(())

@@ -31,21 +31,31 @@ impl ShellChannel {
 
     /// Read available data from the remote shell's stdout/stderr.
     /// Returns the number of bytes read. Returns 0 on EOF.
+    ///
+    /// Loops internally, skipping non-data protocol messages
+    /// (WindowAdjusted, Success, Failure) until real data or EOF arrives.
     pub async fn read(&mut self, buf: &mut [u8]) -> Result<usize, AppError> {
-        match self.channel.wait().await {
-            Some(ChannelMsg::Data { ref data }) => {
-                let len = data.len().min(buf.len());
-                buf[..len].copy_from_slice(&data[..len]);
-                Ok(len)
+        loop {
+            match self.channel.wait().await {
+                Some(ChannelMsg::Data { ref data }) => {
+                    let len = data.len().min(buf.len());
+                    buf[..len].copy_from_slice(&data[..len]);
+                    return Ok(len);
+                }
+                Some(ChannelMsg::ExtendedData { ref data, .. }) => {
+                    let len = data.len().min(buf.len());
+                    buf[..len].copy_from_slice(&data[..len]);
+                    return Ok(len);
+                }
+                // Real EOF conditions
+                Some(ChannelMsg::Eof)
+                | Some(ChannelMsg::Close)
+                | Some(ChannelMsg::ExitStatus { .. })
+                | Some(ChannelMsg::Signal { .. }) => return Ok(0),
+                None => return Ok(0),
+                // WindowAdjusted, Success, Failure, etc. — skip and keep reading
+                _ => continue,
             }
-            Some(ChannelMsg::ExtendedData { ref data, .. }) => {
-                let len = data.len().min(buf.len());
-                buf[..len].copy_from_slice(&data[..len]);
-                Ok(len)
-            }
-            Some(ChannelMsg::Eof) | Some(ChannelMsg::Close) => Ok(0),
-            None => Ok(0),
-            _ => Ok(0),
         }
     }
 
@@ -78,7 +88,7 @@ impl SshSession {
         let handler = ClientHandler {
             host: host.to_string(),
             port,
-            store: std::sync::Mutex::new(store.clone()),
+            store: Arc::new(std::sync::Mutex::new(store.clone())),
             host_key_verified: false,
             host_key_error: None,
         };
@@ -103,7 +113,7 @@ impl SshSession {
     }
 
     /// Open an interactive shell session with PTY allocation.
-    pub async fn open_shell(&mut self, connection_id: &str) -> Result<ShellChannel, AppError> {
+    pub async fn open_shell(&self, connection_id: &str) -> Result<ShellChannel, AppError> {
         let channel = self
             .handle
             .channel_open_session()
@@ -130,10 +140,11 @@ impl SshSession {
 }
 
 /// Russh client handler with host key verification.
+#[derive(Clone)]
 pub struct ClientHandler {
     host: String,
     port: u16,
-    store: std::sync::Mutex<HostKeyStore>,
+    store: Arc<std::sync::Mutex<HostKeyStore>>,
     host_key_verified: bool,
     host_key_error: Option<String>,
 }

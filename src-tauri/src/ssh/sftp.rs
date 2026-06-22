@@ -17,7 +17,7 @@ pub struct FileEntry {
 
 impl SftpClient {
     /// Open an SFTP session from an existing SSH session.
-    pub async fn from_session(session: &mut SshSession) -> Result<Self, AppError> {
+    pub async fn from_session(session: &SshSession) -> Result<Self, AppError> {
         let channel = session
             .handle
             .channel_open_session()

@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "SSH Tool",
+        "title": "SSH 工具",
         "width": 1100,
         "height": 700,
         "minWidth": 900,

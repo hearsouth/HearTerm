@@ -21,8 +21,9 @@ pub fn run() {
     let database = Database::new(app_dir).expect("Failed to initialize database");
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(ConnectionManager {
-            sessions: Mutex::new(HashMap::new()),
+            sessions: tokio::sync::Mutex::new(HashMap::new()),
         })
         .manage(TerminalChannels {
             writers: Arc::new(Mutex::new(HashMap::new())),
@@ -38,10 +39,18 @@ pub fn run() {
             commands::terminal::term_write,
             commands::terminal::term_resize,
             commands::settings::save_connection,
+            commands::settings::update_connection,
             commands::settings::list_connections,
             commands::settings::delete_connection,
             commands::settings::store_password,
             commands::settings::get_password,
+            commands::settings::rename_group,
+            commands::settings::move_to_group,
+            commands::settings::delete_group,
+            commands::settings::create_group,
+            commands::settings::list_groups,
+            commands::settings::export_config,
+            commands::settings::import_config,
             commands::sftp::sftp_list,
             commands::sftp::sftp_mkdir,
             commands::sftp::sftp_delete,

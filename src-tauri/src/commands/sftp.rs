@@ -8,42 +8,27 @@ pub struct SftpClients {
     pub clients: Mutex<HashMap<String, SftpClient>>,
 }
 
-/// Ensure an SFTP client exists for the connection, returning the client
-/// (removed from the map to avoid holding the lock across await).
 async fn get_or_create_client(
     sftp_state: &SftpClients,
     state: &ConnectionManager,
     connection_id: &str,
 ) -> Result<SftpClient, String> {
-    // Try to get existing client
     let existing = sftp_state.clients.lock().unwrap().remove(connection_id);
     if let Some(client) = existing {
         return Ok(client);
     }
 
-    // Create new SFTP session
-    let mut session = {
-        let mut sessions = state.sessions.lock().unwrap();
-        sessions
-            .remove(connection_id)
-            .ok_or("Connection not found")?
+    let client = {
+        let sessions = state.sessions.lock().await;
+        let session = sessions.get(connection_id).ok_or("Connection not found")?;
+        SftpClient::from_session(session)
+            .await
+            .map_err(|e| e.to_string())?
     };
-
-    let client = SftpClient::from_session(&mut session)
-        .await
-        .map_err(|e| e.to_string())?;
-
-    // Put session back
-    state
-        .sessions
-        .lock()
-        .unwrap()
-        .insert(connection_id.to_string(), session);
 
     Ok(client)
 }
 
-/// Put client back into the map after operation.
 fn put_client(sftp_state: &SftpClients, connection_id: &str, client: SftpClient) {
     sftp_state
         .clients
@@ -71,14 +56,12 @@ pub async fn sftp_mkdir(
     connection_id: String,
     path: String,
 ) -> Result<(), String> {
-    let mut client = {
-        sftp_state
-            .clients
-            .lock()
-            .unwrap()
-            .remove(&connection_id)
-            .ok_or("SFTP session not open")?
-    };
+    let mut client = sftp_state
+        .clients
+        .lock()
+        .unwrap()
+        .remove(&connection_id)
+        .ok_or("SFTP session not open")?;
     let result = client.mkdir(&path).await.map_err(|e| e.to_string());
     put_client(&sftp_state, &connection_id, client);
     result
@@ -91,14 +74,12 @@ pub async fn sftp_delete(
     path: String,
     is_dir: bool,
 ) -> Result<(), String> {
-    let mut client = {
-        sftp_state
-            .clients
-            .lock()
-            .unwrap()
-            .remove(&connection_id)
-            .ok_or("SFTP session not open")?
-    };
+    let mut client = sftp_state
+        .clients
+        .lock()
+        .unwrap()
+        .remove(&connection_id)
+        .ok_or("SFTP session not open")?;
     let result = if is_dir {
         client.remove_dir(&path).await.map_err(|e| e.to_string())
     } else {
@@ -115,14 +96,12 @@ pub async fn sftp_rename(
     from: String,
     to: String,
 ) -> Result<(), String> {
-    let mut client = {
-        sftp_state
-            .clients
-            .lock()
-            .unwrap()
-            .remove(&connection_id)
-            .ok_or("SFTP session not open")?
-    };
+    let mut client = sftp_state
+        .clients
+        .lock()
+        .unwrap()
+        .remove(&connection_id)
+        .ok_or("SFTP session not open")?;
     let result = client.rename(&from, &to).await.map_err(|e| e.to_string());
     put_client(&sftp_state, &connection_id, client);
     result

@@ -7,15 +7,16 @@ import { listen } from '@tauri-apps/api/event';
 import 'xterm/css/xterm.css';
 
 interface Props {
+  terminalId: string;
   connectionId: string;
 }
 
-export default function TerminalPanel({ connectionId }: Props) {
+export default function TerminalPanel({ terminalId, connectionId }: Props) {
   const termRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
-  const connectionRef = useRef(connectionId);
-  connectionRef.current = connectionId;
+  const terminalIdRef = useRef(terminalId);
+  terminalIdRef.current = terminalId;
 
   useEffect(() => {
     if (!termRef.current) return;
@@ -62,7 +63,7 @@ export default function TerminalPanel({ connectionId }: Props) {
     term.onData((data) => {
       const bytes = new TextEncoder().encode(data);
       invoke('term_write', {
-        connectionId,
+        terminalId,
         data: Array.from(bytes),
       }).catch(console.error);
     });
@@ -71,14 +72,14 @@ export default function TerminalPanel({ connectionId }: Props) {
     const unlistenPromise = listen<{ connection_id: string; data: number[] }>(
       'terminal-output',
       (event) => {
-        if (event.payload.connection_id === connectionRef.current) {
+        if (event.payload.connection_id === terminalIdRef.current) {
           term.write(new Uint8Array(event.payload.data));
         }
       },
     );
 
     // Open terminal channel on backend
-    invoke('term_open', { connectionId }).catch(console.error);
+    invoke('term_open', { terminalId, connectionId }).catch(console.error);
 
     // Handle window resize
     const handleResize = () => {
@@ -91,7 +92,7 @@ export default function TerminalPanel({ connectionId }: Props) {
       window.removeEventListener('resize', handleResize);
       term.dispose();
     };
-  }, [connectionId]);
+  }, [terminalId, connectionId]);
 
   return <div ref={termRef} className="h-full w-full" />;
 }

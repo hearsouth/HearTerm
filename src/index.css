@@ -2,7 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* xterm.js overrides for dark theme */
+/* ── Global dark-theme foundation ── */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #374151 transparent;
+  }
+  body {
+    background: #111318;
+    color: #c9d1d9;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: #33467c;
+    color: #c0caf5;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: #374151;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+  input[type="checkbox"] {
+    accent-color: #3b82f6;
+  }
+}
+
+/* xterm.js overrides */
 .xterm {
   padding: 4px;
 }
@@ -15,4 +42,13 @@
 .xterm-viewport::-webkit-scrollbar-thumb {
   background: #374151;
   border-radius: 3px;
+}
+
+/* ── Utility: connection row active state ── */
+.conn-row-active {
+  background: linear-gradient(90deg, rgba(59,130,246,0.18), rgba(59,130,246,0.04));
+  border-left: 2px solid #3b82f6;
+}
+.conn-row-hover:hover {
+  background: rgba(55,65,81,0.6);
 }

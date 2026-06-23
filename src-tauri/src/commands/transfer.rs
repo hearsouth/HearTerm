@@ -1,20 +1,8 @@
 use tauri::{AppHandle, Emitter, State};
 use crate::commands::connection::ConnectionManager;
-use crate::commands::sftp::SftpClients;
+use crate::commands::sftp::{SftpClients, get_or_create_client};
 use crate::storage::db::Database;
 use crate::transfer::engine;
-
-async fn get_or_create_sftp(
-    sftp_state: &SftpClients,
-    state: &ConnectionManager,
-    connection_id: &str,
-) -> Result<crate::ssh::sftp::SftpClient, String> {
-    let existing = sftp_state.clients.lock().unwrap().remove(connection_id);
-    if let Some(client) = existing { return Ok(client); }
-    let sessions = state.sessions.lock().await;
-    let session = sessions.get(connection_id).ok_or("Connection not found")?;
-    crate::ssh::sftp::SftpClient::from_session(session).await.map_err(|e| e.to_string())
-}
 
 #[tauri::command]
 pub async fn transfer_upload(
@@ -38,7 +26,7 @@ pub async fn transfer_upload(
         rusqlite::params![transfer_id, connection_id, remote_path, local_path, now],
     ).map_err(|e| e.to_string())?;
 
-    let mut client = get_or_create_sftp(&sftp_state, &state, &connection_id).await?;
+    let mut client = get_or_create_client(&sftp_state, &state, &connection_id).await?;
 
     let tid = transfer_id.clone();
     let app2 = app.clone();
@@ -104,7 +92,7 @@ pub async fn transfer_download(
         rusqlite::params![transfer_id, connection_id, remote_path, local_path, now],
     ).map_err(|e| e.to_string())?;
 
-    let mut client = get_or_create_sftp(&sftp_state, &state, &connection_id).await?;
+    let mut client = get_or_create_client(&sftp_state, &state, &connection_id).await?;
 
     let tid = transfer_id.clone();
     let app2 = app.clone();

@@ -16,7 +16,7 @@ use storage::db::Database;
 pub fn run() {
     let app_dir = dirs::data_dir()
         .unwrap_or_else(|| std::path::PathBuf::from("."))
-        .join("ssh-tool");
+        .join("hear-term");
 
     let database = Database::new(app_dir).expect("Failed to initialize database");
 

@@ -59,7 +59,7 @@ export default function TransferQueue() {
   };
 
   return (
-    <div className="bg-gray-900 border-t border-gray-800">
+    <div className="bg-gray-800/50 border-t border-gray-700/50 rounded-t-lg mt-1">
       {activeTransfers.map((t) => (
         <TransferBar key={t.id} transfer={t} formatSize={formatSize} formatSpeed={formatSpeed} />
       ))}
@@ -91,25 +91,25 @@ function TransferBar({
   const name = transfer.remote_path.split('/').pop() || transfer.remote_path;
 
   return (
-    <div className="px-3 py-1.5 border-b border-gray-800/50 text-xs">
-      <div className="flex items-center justify-between mb-0.5">
-        <span className="text-gray-400 truncate max-w-[300px]">
+    <div className="px-3 py-2 border-b border-gray-700/30 text-xs">
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-gray-300 truncate max-w-[280px] font-medium">
           {transfer.direction === 'upload' ? '⬆' : '⬇'} {name}
         </span>
-        <span className="text-gray-500 ml-2 shrink-0">
-          {isFailed ? '❌' : isDone ? '✅' : `${pct.toFixed(0)}%`}
+        <span className={`ml-2 shrink-0 ${isFailed ? 'text-red-400' : isDone ? 'text-green-400' : 'text-blue-400'}`}>
+          {isFailed ? '❌ 失败' : isDone ? '✅ 完成' : `${pct.toFixed(0)}%`}
         </span>
       </div>
 
       {isActive && (
         <>
-          <div className="h-1 bg-gray-800 rounded-full overflow-hidden">
+          <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-blue-500 rounded-full transition-all duration-300"
+              className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all duration-300"
               style={{ width: `${pct}%` }}
             />
           </div>
-          <div className="flex justify-between mt-0.5 text-gray-600">
+          <div className="flex justify-between mt-1 text-gray-600">
             <span>
               {formatSize(transfer.bytes_transferred)} / {transfer.total_size ? formatSize(transfer.total_size) : '?'}
             </span>
@@ -121,7 +121,7 @@ function TransferBar({
       )}
 
       {isFailed && (
-        <div className="text-red-400 text-xs mt-0.5">{transfer.error_message || 'Transfer failed'}</div>
+        <div className="text-red-400/80 text-xs mt-1 bg-red-500/5 px-2 py-0.5 rounded">{transfer.error_message || 'Transfer failed'}</div>
       )}
     </div>
   );

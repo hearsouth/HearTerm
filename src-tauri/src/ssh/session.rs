@@ -10,6 +10,7 @@ use crate::ssh::config::{HostKeyStore, fingerprint};
 
 pub struct SshSession {
     pub handle: Handle<ClientHandler>,
+    #[allow(dead_code)]
     host_key_store: HostKeyStore,
 }
 

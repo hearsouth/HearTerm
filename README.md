@@ -1,89 +1,60 @@
-# SSH 工具
+# HearTerm
 
-跨平台现代 SSH 客户端，支持终端、SFTP 文件管理、分组、导入导出。
+跨平台 SSH 客户端，支持终端、SFTP 文件管理、分组、拖拽上传。
 
 ## 功能
 
-### 终端
-- 多 Tab 终端，每个连接可开多个 Shell
-- xterm.js 256 色，ResizeObserver 自适应分屏拖拽
-- 滚动缓冲区 10000 行
-
-### 文件管理
-- 树状文件浏览器，点击 ▶ 展开子目录
-- 文件多选批量下载/删除
-- 支持目录递归下载/上传
-- 拖拽上传（Tauri 原生事件，从 Finder 拖文件到面板即可）
-- 路径输入框直接跳转目录
-
-### 连接管理
-- 分组管理：新建/重命名/删除分组，点击 "↗" 移动到其他分组
-- 新建连接（保存 + 保存并连接 + 测试连接）
-- 编辑连接可显隐密码
-
-### 安全
-- AES-256-GCM 本地加密存储密码（SQLite）
-- 密码通过 SHA-256(master_key, connectionId) 推导密钥，不存明文
-
-### 导入导出
-- 导出 JSON（含连接信息 + 明文密码）
-- 导入时用本机密钥重新加密
-- 跨机器迁移：导出 → 拷贝 → 另一台导入
-
-### 窗口
-- 无边框窗口，自定义红绿灯窗口按钮
-- 分屏布局（左侧连接 → 上终端 → 下文件），分割线可拖拽
+| 模块 | 特性 |
+|------|------|
+| 终端 | 多 Tab、xterm 256 色、自适应分屏、滚动缓冲区 10000 行 |
+| 文件管理 | 树状展开、Tab 补全路径、多选批量下载删除、目录递归传输 |
+| 拖拽上传 | 从 Finder 拖文件到面板即上传，确认弹窗可改目标路径 |
+| 分组 | 新建/重命名/删除分组，点击 ↗ 移动连接到其他分组 |
+| 安全 | AES-256-GCM 本地加密存储密码，派生密钥 SHA-256(master, connId) |
+| 导入导出 | JSON 明文密码导出，导入时本地重加密，跨机器迁移 |
+| 窗口 | 无边框、自定义红绿灯按钮、侧栏+终端+文件三分屏拖拽 |
 
 ## 技术栈
 
 | 层 | 技术 |
 |----|------|
-| 桌面框架 | Tauri v2 |
+| 框架 | Tauri v2 |
 | 前端 | React 18 + TypeScript + Vite 6 + Tailwind CSS 3 |
-| 终端 | xterm.js 5 + xterm-addon-fit + xterm-addon-web-links |
-| 状态管理 | Zustand 5 |
+| 终端 | xterm.js 5 |
+| 状态 | Zustand 5 |
 | SSH | russh 0.45 + russh-sftp 2.0 |
-| 数据库 | rusqlite 0.31 (bundled SQLite) |
+| 存储 | rusqlite 0.31 (bundled SQLite) |
 | 加密 | aes-gcm + sha2 |
 
 ## 开发
 
 ```bash
-# 安装依赖
 npm install
-
-# 开发模式
-npm run tauri dev
-
-# 构建
-npm run tauri build
+npm run tauri dev    # 开发
+npm run tauri build  # 构建
 ```
-
-构建产物位于 `src-tauri/target/release/bundle/`。
 
 ## 项目结构
 
 ```
 ├── src/                     # React 前端
-│   ├── App.tsx              # 主布局：侧栏 + 终端 + 文件面板
+│   ├── App.tsx
 │   ├── components/
-│   │   ├── terminal/        # TerminalPanel — xterm.js 终端
-│   │   ├── files/           # FilePanel — 树状文件管理 + TransferQueue
-│   │   ├── sidebar/         # ConnectionList — 分组连接列表
-│   │   ├── dialogs/         # ConnectionDialog — 新建/编辑连接
-│   │   ├── host/            # HostList — 主机列表
-│   │   └── ui/              # 通用 UI 组件
-│   ├── hooks/               # 自定义 hooks
-│   ├── stores/              # Zustand 状态
-│   └── lib/                 # 工具函数 + Tauri IPC
+│   │   ├── terminal/        # 终端面板
+│   │   ├── files/           # 文件浏览器 + 传输队列
+│   │   ├── sidebar/         # 分组连接列表
+│   │   ├── dialogs/         # 连接对话框
+│   │   ├── host/            # 主机列表
+│   │   └── ui/              # 通用组件
+│   ├── stores/              # Zustand
+│   └── lib/                 # 工具函数
 ├── src-tauri/               # Rust 后端
 │   └── src/
-│       ├── ssh/             # session.rs + sftp.rs
-│       ├── transfer/        # engine.rs — 分块上传/下载 + 目录递归
-│       ├── storage/         # db.rs + keyring.rs + crypto.rs
-│       ├── commands/        # settings / connection / terminal / sftp / transfer
-│       └── lib.rs           # 命令注册
-└── src-tauri/capabilities/  # Tauri 权限配置
+│       ├── ssh/             # SSH 会话 + SFTP 客户端
+│       ├── transfer/        # 传输引擎（分块 + 目录递归）
+│       ├── storage/         # SQLite + 加密
+│       └── commands/        # Tauri 命令
+└── src-tauri/capabilities/  # 权限配置
 ```
 
 ## 许可

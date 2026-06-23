@@ -112,9 +112,9 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
   return (
     <div className="flex-1 overflow-y-auto space-y-0.5">
       {connectError && (
-        <div className="bg-red-900/40 text-red-300 px-2 py-1.5 rounded text-xs mb-1 flex justify-between">
+        <div className="bg-red-900/30 border border-red-800/50 text-red-300 px-3 py-2 rounded-md text-xs mb-2 flex justify-between items-center">
           <span>{connectError}</span>
-          <button onClick={() => setConnectError('')} className="text-red-400 hover:text-red-200 ml-2">✕</button>
+          <button onClick={() => setConnectError('')} className="text-red-400 hover:text-red-200 ml-2 shrink-0">✕</button>
         </div>
       )}
       {Object.entries(grouped).length === 0 && connections.length === 0 ? (
@@ -125,19 +125,19 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
       ) : (
         Object.entries(grouped).map(([group, conns]) => (
           <div key={group}>
-            <div className="flex items-center gap-1 px-1 py-1 rounded transition-colors">
-              <button onClick={() => toggleGroup(group)} className="text-[10px] text-gray-500 hover:text-gray-300">
+            <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-md transition-colors hover:bg-gray-800/40 group">
+              <button onClick={() => toggleGroup(group)} className="text-[10px] text-gray-500 hover:text-gray-300 transition-colors">
                 {collapsedGroups.has(group) ? '▶' : '▼'}
               </button>
               {editingGroup === group ? (
                 <input value={editGroupName} onChange={e => setEditGroupName(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') confirmRename(); if (e.key === 'Escape') setEditingGroup(null); }}
                   onBlur={confirmRename}
-                  className="flex-1 bg-gray-700 border border-blue-500 rounded px-1 py-0 text-xs outline-none" autoFocus />
+                  className="flex-1 bg-gray-700 border border-blue-500 rounded px-1.5 py-0.5 text-xs outline-none" autoFocus />
               ) : (
-                <span className="font-medium text-xs text-gray-400">{group}</span>
+                <span className="font-medium text-xs text-gray-400 tracking-wide group-hover:text-gray-300">{group}</span>
               )}
-              <span className="text-gray-600 text-[10px]">{conns.length}</span>
+              <span className="text-gray-600 text-[10px] bg-gray-800/50 px-1.5 py-px rounded-full">{conns.length}</span>
               <div className="ml-auto flex gap-0.5 opacity-60 hover:opacity-100 transition-opacity">
                 <button onClick={() => startRename(group)} className="text-gray-600 hover:text-blue-400 text-[10px] px-0.5" title="重命名">✏️</button>
                 {confirmDeleteGroup === group ? (<>
@@ -149,7 +149,11 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
               </div>
             </div>
             {!collapsedGroups.has(group) && conns.map(c => (
-              <div key={c.id} className={`flex items-center rounded text-sm transition-colors ml-2 relative ${activeId === c.id ? 'bg-blue-600/40 text-blue-300' : 'hover:bg-gray-800 text-gray-400'}`}>
+              <div key={c.id} className={`flex items-center rounded-md text-sm transition-colors ml-3 mr-0.5 my-0.5 relative overflow-hidden ${
+                activeId === c.id
+                  ? 'conn-row-active bg-blue-600/15 border-l-2 border-blue-500 text-blue-200'
+                  : 'conn-row-hover text-gray-400 border-l-2 border-transparent'
+              }`}>
                 <button onDoubleClick={() => handleConnectClick(c)} onClick={() => handleConnectClick(c)}
                   className="flex-1 text-left px-2 py-1.5 truncate min-w-0">
                   <div className="truncate font-medium">{c.name}</div>
@@ -161,11 +165,11 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
                     <button onClick={(e) => { e.stopPropagation(); setMoveMenuConnId(moveMenuConnId === c.id ? null : c.id); }}
                       className="text-gray-500 hover:text-green-400 px-1 py-0.5 text-xs opacity-60 hover:opacity-100 transition-opacity" title="移动到分组">↗</button>
                     {moveMenuConnId === c.id && (
-                      <div className="absolute right-0 top-full mt-1 z-50 bg-gray-800 border border-gray-700 rounded shadow-lg py-1 min-w-[120px]">
+                      <div className="absolute right-0 top-full mt-1 z-50 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-1 min-w-[120px]">
                         {Object.keys(grouped).filter(g => g !== group).map(g => (
                           <button key={g} onClick={(e) => { e.stopPropagation(); moveToGroup(c.id, g); }}
-                            className="w-full text-left px-3 py-1 text-xs text-gray-300 hover:bg-gray-700 transition-colors">
-                            {g}
+                            className="w-full text-left px-3 py-1.5 text-xs text-gray-300 hover:bg-gray-700/70 transition-colors">
+                            📁 {g}
                           </button>
                         ))}
                         {Object.keys(grouped).filter(g => g !== group).length === 0 && (
@@ -192,16 +196,16 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
         ))
       )}
       {showNewGroup ? (
-        <div className="flex items-center gap-1 px-1 py-1">
+        <div className="flex items-center gap-1.5 px-1.5 py-1.5">
           <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') createGroup(); if (e.key === 'Escape') { setShowNewGroup(false); setNewGroupName(''); } }}
             placeholder="输入分组名称" autoFocus
-            className="flex-1 bg-gray-700 border border-blue-500 rounded px-2 py-0.5 text-xs outline-none" />
-          <button onClick={createGroup} className="text-xs text-blue-400 hover:text-blue-300 px-1">✓</button>
-          <button onClick={() => { setShowNewGroup(false); setNewGroupName(''); }} className="text-xs text-gray-500 hover:text-gray-300 px-1">✕</button>
+            className="flex-1 bg-gray-800 border border-blue-500/50 rounded-md px-2.5 py-1 text-xs outline-none focus:border-blue-400 transition-colors" />
+          <button onClick={createGroup} className="text-xs text-blue-400 hover:text-blue-300 px-1.5 py-0.5 rounded hover:bg-blue-500/10 transition-colors">✓</button>
+          <button onClick={() => { setShowNewGroup(false); setNewGroupName(''); }} className="text-xs text-gray-500 hover:text-gray-300 px-1.5 py-0.5 rounded hover:bg-gray-700/50 transition-colors">✕</button>
         </div>
       ) : (
-        <button onClick={() => setShowNewGroup(true)} className="w-full text-xs text-gray-600 hover:text-gray-400 py-1 text-left px-1">
+        <button onClick={() => setShowNewGroup(true)} className="w-full text-xs text-gray-600 hover:text-gray-400 py-1.5 text-left px-1.5 rounded-md hover:bg-gray-800/30 transition-colors">
           + 新建分组
         </button>
       )}

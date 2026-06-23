@@ -1620,6 +1620,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "hear-term"
+version = "0.3.0"
+dependencies = [
+ "aes-gcm",
+ "anyhow",
+ "argon2",
+ "async-trait",
+ "chrono",
+ "dirs 5.0.1",
+ "hex",
+ "keyring",
+ "rand",
+ "rusqlite",
+ "russh",
+ "russh-sftp",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "thiserror 1.0.69",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3891,33 +3918,6 @@ dependencies = [
  "ssh-encoding",
  "subtle",
  "zeroize",
-]
-
-[[package]]
-name = "ssh-tool"
-version = "0.3.0"
-dependencies = [
- "aes-gcm",
- "anyhow",
- "argon2",
- "async-trait",
- "chrono",
- "dirs 5.0.1",
- "hex",
- "keyring",
- "rand",
- "rusqlite",
- "russh",
- "russh-sftp",
- "serde",
- "serde_json",
- "sha2",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "thiserror 1.0.69",
- "tokio",
- "uuid",
 ]
 
 [[package]]

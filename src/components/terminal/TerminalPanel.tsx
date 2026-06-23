@@ -24,8 +24,9 @@ export default function TerminalPanel({ terminalId, connectionId }: Props) {
     const term = new Terminal({
       cursorBlink: true,
       fontSize: 14,
-      fontFamily: 'JetBrains Mono, monospace',
+      fontFamily: 'JetBrains Mono, Menlo, Monaco, monospace',
       scrollback: 10000,
+      allowProposedApi: true,
       theme: {
         background: '#1a1b26',
         foreground: '#a9b1d6',

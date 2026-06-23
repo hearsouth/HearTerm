@@ -285,8 +285,8 @@ export default function FilePanel({ connectionId }: Props) {
       {(dragOverPanel || dropDialog) && (
         <div className="absolute inset-0 z-40 bg-blue-500/20 border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center">
           {dropDialog ? (
-            <div className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 shadow-xl max-w-md w-full mx-4">
-              <div className="text-sm text-gray-300 mb-2">上传 {dropDialog.paths.length} 个文件</div>
+            <div className="bg-[#1a1b26] border border-gray-700/70 rounded-xl px-5 py-4 shadow-2xl max-w-md w-full mx-4">
+              <div className="text-sm text-gray-300 mb-3 font-medium">📤 上传 {dropDialog.paths.length} 个文件</div>
               <div className="flex items-center gap-2">
                 <input
                   value={dropTargetPath}
@@ -296,12 +296,12 @@ export default function FilePanel({ connectionId }: Props) {
                     else if (e.key === 'Tab') { e.preventDefault(); tabCompleteDrop(); }
                     else if (e.key === 'Escape') setDropDialog(null);
                   }}
-                  className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm font-mono text-gray-300 focus:outline-none focus:border-blue-500"
+                  className="flex-1 bg-gray-800/70 border border-gray-700/50 rounded-lg px-3 py-2 text-sm font-mono text-gray-300 focus:outline-none focus:border-blue-500/60 transition-colors"
                   autoFocus
                   placeholder="远程目标路径"
                 />
-                <button onClick={confirmUpload} className="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-sm whitespace-nowrap">上传</button>
-                <button onClick={() => setDropDialog(null)} className="text-gray-500 hover:text-gray-300 text-sm px-1">✕</button>
+                <button onClick={confirmUpload} className="bg-blue-600/90 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm whitespace-nowrap font-medium transition-all duration-150">上传</button>
+                <button onClick={() => setDropDialog(null)} className="text-gray-500 hover:text-gray-300 text-sm px-1.5 py-1 rounded hover:bg-gray-700/50 transition-colors">✕</button>
               </div>
             </div>
           ) : (
@@ -314,15 +314,15 @@ export default function FilePanel({ connectionId }: Props) {
           )}
         </div>
       )}
-      <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 shrink-0">
-        <button onClick={goUp} className="text-gray-400 hover:text-white text-sm px-1" title="向上一级">⬆</button>
-        <button onClick={() => buildTreeToPath(remotePath)} className="text-gray-400 hover:text-white text-sm px-1" title="刷新">↻</button>
+      <div className="flex items-center gap-2 px-3 py-2.5 bg-[#111318] border-b border-gray-800/70 shrink-0">
+        <button onClick={goUp} className="text-gray-400 hover:text-white text-sm px-1.5 py-0.5 rounded hover:bg-gray-700/50 transition-colors" title="向上一级">⬆</button>
+        <button onClick={() => buildTreeToPath(remotePath)} className="text-gray-400 hover:text-white text-sm px-1.5 py-0.5 rounded hover:bg-gray-700/50 transition-colors" title="刷新">↻</button>
         <input value={pathInput} onChange={e => { setPathInput(e.target.value); setCompletions([]); }}
           onKeyDown={e => { if (e.key === 'Enter') navigateTo(); else if (e.key === 'Tab') { e.preventDefault(); tabComplete(); } }}
           onBlur={() => setCompletions([])}
-          className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-0.5 text-xs font-mono text-gray-300 focus:outline-none focus:border-blue-500"
+          className="flex-1 bg-gray-800/60 border border-gray-700/50 rounded-lg px-3 py-1.5 text-xs font-mono text-gray-300 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20 transition-colors"
           placeholder="远程路径，回车跳转，Tab 补全" />
-        <button onClick={handleUploadClick} className="text-xs bg-blue-600 hover:bg-blue-500 px-2 py-0.5 rounded whitespace-nowrap">⬆ 上传</button>
+        <button onClick={handleUploadClick} className="text-xs bg-blue-600/90 hover:bg-blue-500 px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-all duration-150 shadow-sm shadow-blue-900/30">⬆ 上传</button>
       </div>
 
       {/* Tab completions dropdown */}
@@ -341,15 +341,15 @@ export default function FilePanel({ connectionId }: Props) {
       )}
 
       {error && (
-        <div className="bg-red-900/40 text-red-300 px-3 py-1 text-xs flex items-center justify-between shrink-0">
-          <span>{error}</span><button onClick={() => setError('')} className="text-red-400 hover:text-red-200">✕</button>
+        <div className="bg-red-900/30 border-b border-red-800/40 text-red-300 px-3 py-1.5 text-xs flex items-center justify-between shrink-0">
+          <span>{error}</span><button onClick={() => setError('')} className="text-red-400 hover:text-red-200 px-1">✕</button>
         </div>
       )}
 
       {/* Bulk actions */}
       {selectedSet.size > 0 && (
-        <div className="bg-blue-900/30 border-b border-blue-800 px-3 py-1.5 flex items-center gap-2 shrink-0 text-xs">
-          <span className="text-blue-300">已选 {selectedSet.size} 项</span>
+        <div className="bg-blue-900/20 border-b border-blue-800/40 px-3 py-2 flex items-center gap-2 shrink-0 text-xs">
+          <span className="text-blue-300 font-medium">已选 {selectedSet.size} 项</span>
           <button onClick={async () => {
             const dir = await open({ directory: true, title: '选择批量保存目录' });
             if (!dir) return;
@@ -386,13 +386,13 @@ export default function FilePanel({ connectionId }: Props) {
           <div className="text-gray-500 text-sm p-4">加载中…</div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-gray-900 text-gray-500 text-xs z-10">
+            <thead className="sticky top-0 bg-[#111318] text-gray-500 text-[11px] z-10">
               <tr>
-                <th className="w-8 px-2 py-1.5"><input type="checkbox" checked={selectedSet.size === treeData.length && treeData.length > 0}
+                <th className="w-8 px-2 py-2"><input type="checkbox" checked={selectedSet.size === treeData.length && treeData.length > 0}
                   onChange={selectAll} className="rounded bg-gray-700 border-gray-600" /></th>
-                <th className="text-left py-1.5">名称</th>
-                <th className="text-right px-2 py-1.5 w-20">大小</th>
-                <th className="text-right px-2 py-1.5 w-36">修改时间</th>
+                <th className="text-left py-2 font-medium">名称</th>
+                <th className="text-right px-2 py-2 w-20 font-medium">大小</th>
+                <th className="text-right px-2 py-2 w-36 font-medium">修改时间</th>
                 <th className="w-24"></th>
               </tr>
             </thead>
@@ -447,8 +447,10 @@ export default function FilePanel({ connectionId }: Props) {
         )}
       </div>
 
-      <div className="text-xs text-gray-600 px-3 py-1 bg-gray-900 border-t border-gray-800 shrink-0">
-        {treeData.length} 项
+      <div className="text-xs text-gray-600 px-3 py-1.5 bg-[#111318] border-t border-gray-800/70 shrink-0 flex items-center gap-3">
+        <span>{treeData.length} 项</span>
+        {selectedSet.size > 0 && <span className="text-blue-400/70">{selectedSet.size} 选中</span>}
+        <span className="ml-auto text-gray-700">{remotePath}</span>
       </div>
       <TransferQueue />
     </div>

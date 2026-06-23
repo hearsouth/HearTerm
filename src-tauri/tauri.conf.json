@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicepkg/vscode-tauri/main/schemas/tauri.conf.schema.json",
-  "productName": "ssh-tool",
+  "productName": "HearTerm",
   "version": "0.3.0",
-  "identifier": "com.sshtool.app",
+  "identifier": "com.hearterm.app",
   "build": {
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "SSH 工具",
+        "title": "HearTerm",
         "width": 1100,
         "height": 700,
         "minWidth": 900,

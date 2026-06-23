@@ -8,7 +8,7 @@ pub struct SftpClients {
     pub clients: Arc<Mutex<HashMap<String, SftpClient>>>,
 }
 
-async fn get_or_create_client(
+pub async fn get_or_create_client(
     sftp_state: &SftpClients,
     state: &ConnectionManager,
     connection_id: &str,

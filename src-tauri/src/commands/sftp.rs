@@ -1,11 +1,11 @@
 use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use tauri::State;
 use crate::commands::connection::ConnectionManager;
 use crate::ssh::sftp::{FileEntry, SftpClient};
 
 pub struct SftpClients {
-    pub clients: Mutex<HashMap<String, SftpClient>>,
+    pub clients: Arc<Mutex<HashMap<String, SftpClient>>>,
 }
 
 async fn get_or_create_client(
@@ -29,7 +29,7 @@ async fn get_or_create_client(
     Ok(client)
 }
 
-fn put_client(sftp_state: &SftpClients, connection_id: &str, client: SftpClient) {
+pub fn put_client(sftp_state: &SftpClients, connection_id: &str, client: SftpClient) {
     sftp_state
         .clients
         .lock()

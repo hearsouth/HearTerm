@@ -28,12 +28,9 @@ pub async fn transfer_upload(
 ) -> Result<String, String> {
     let transfer_id = uuid::Uuid::new_v4().to_string();
     let filename = std::path::Path::new(&local_path)
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("upload");
+        .file_name().and_then(|n| n.to_str()).unwrap_or("upload");
     let remote_path = format!("{}/{}", remote_dir.trim_end_matches('/'), filename);
 
-    // Insert transfer record
     let now = chrono::Utc::now().timestamp();
     db.conn.lock().unwrap().execute(
         "INSERT INTO transfers (id, connection_id, direction, remote_path, local_path, total_size, status, created_at, updated_at)
@@ -46,15 +43,21 @@ pub async fn transfer_upload(
     let tid = transfer_id.clone();
     let app2 = app.clone();
     let db2 = db.conn.clone();
+    let cid = connection_id.clone();
+
+    // Clone Arc before spawn
+    let sftp_clients = sftp_state.clients.clone();
 
     tokio::spawn(async move {
-        // Auto-detect directory
         let is_dir = tokio::fs::metadata(&local_path).await.map(|m| m.is_dir()).unwrap_or(false);
         let result = if is_dir {
             engine::upload_dir(&mut client, &local_path, &remote_path, &tid, &app2).await
         } else {
             engine::upload_file(&mut client, &local_path, &remote_path, &tid, &app2).await
         };
+
+        // Return client to pool
+        sftp_clients.lock().unwrap().insert(cid, client);
 
         match result {
             Ok(()) => {
@@ -91,9 +94,7 @@ pub async fn transfer_download(
 ) -> Result<String, String> {
     let transfer_id = uuid::Uuid::new_v4().to_string();
     let filename = std::path::Path::new(&remote_path)
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("download");
+        .file_name().and_then(|n| n.to_str()).unwrap_or("download");
     let local_path = format!("{}/{}", local_dir.trim_end_matches('/'), filename);
 
     let now = chrono::Utc::now().timestamp();
@@ -108,9 +109,12 @@ pub async fn transfer_download(
     let tid = transfer_id.clone();
     let app2 = app.clone();
     let db2 = db.conn.clone();
+    let cid = connection_id.clone();
+
+    // Clone Arc before spawn
+    let sftp_clients = sftp_state.clients.clone();
 
     tokio::spawn(async move {
-        // Detect if remote path is a directory
         let is_dir = match client.metadata(&remote_path).await {
             Ok(meta) => meta.is_dir,
             Err(_) => false,
@@ -121,6 +125,9 @@ pub async fn transfer_download(
         } else {
             engine::download_file(&mut client, &remote_path, &local_path, &tid, &app2).await
         };
+
+        // Return client to pool
+        sftp_clients.lock().unwrap().insert(cid, client);
 
         match result {
             Ok(()) => {

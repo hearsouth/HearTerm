@@ -29,7 +29,7 @@ pub fn run() {
             writers: Arc::new(Mutex::new(HashMap::new())),
         })
         .manage(SftpClients {
-            clients: Mutex::new(HashMap::new()),
+            clients: Arc::new(Mutex::new(HashMap::new())),
         })
         .manage(database)
         .invoke_handler(tauri::generate_handler![

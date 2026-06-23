@@ -217,12 +217,12 @@ function App() {
                 key={connId}
                 ref={isActive ? mainRef : undefined}
                 className={`absolute inset-0 flex flex-col min-h-0 ${isDragging && isActive ? 'select-none' : ''}`}
-                style={{ display: isActive ? undefined : 'none', backgroundColor: '#1a1b26', ...(isDragging ? { willChange: 'height' } : {}) }}
+                style={{ visibility: isActive ? 'visible' : 'hidden', zIndex: isActive ? 10 : 0, backgroundColor: '#1a1b26', ...(isDragging ? { willChange: 'height' } : {}) }}
               >
                 {/* Terminal area */}
                 <div className="min-h-0 relative overflow-hidden" style={{ flex: `1 1 ${(1 - splitRatio) * 100}%` }}>
                   {tabs.map((tid, idx) => (
-                    <div key={tid} className="absolute inset-0" style={{ display: idx === termIdx ? undefined : 'none' }}>
+                    <div key={tid} className="absolute inset-0" style={{ visibility: idx === termIdx ? 'visible' : 'hidden' }}>
                       <TerminalPanel terminalId={tid} connectionId={connId} />
                     </div>
                   ))}

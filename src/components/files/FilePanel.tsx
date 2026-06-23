@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -20,10 +20,15 @@ export default function FilePanel({ connectionId }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dragOverPanel, setDragOverPanel] = useState(false);
+  const [dropDialog, setDropDialog] = useState<{ paths: string[] } | null>(null);
+  const [dropTargetPath, setDropTargetPath] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<FileEntry | null>(null);
   const [selectedSet, setSelectedSet] = useState<Set<string>>(new Set());
   const [treeData, setTreeData] = useState<TreeNode[]>([]);
+  const [completions, setCompletions] = useState<string[]>([]);
   const addTransfer = useTransferStore((s) => s.addTransfer);
+  const remotePathRef = useRef(remotePath);
+  remotePathRef.current = remotePath;
 
   const loadChildren = useCallback(async (path: string): Promise<FileEntry[]> => {
     const result = await invoke<FileEntry[]>('sftp_list', { connectionId, path });
@@ -34,62 +39,171 @@ export default function FilePanel({ connectionId }: Props) {
     return result;
   }, [connectionId]);
 
-  const loadRoot = useCallback(async (path: string) => {
+  const buildTreeToPath = useCallback(async (targetPath: string) => {
     setLoading(true); setError('');
     try {
-      const entries = await loadChildren(path);
-      setTreeData(entries.map(e => ({
-        entry: e,
-        path: path === '/' ? `/${e.name}` : `${path}/${e.name}`,
-        depth: 0, expanded: false, children: null,
-      })));
-      setRemotePath(path); setPathInput(path); setSelectedSet(new Set());
+      const segments = targetPath.split('/').filter(Boolean);
+      let currentPath = '/';
+      let roots: TreeNode[] = [];
+
+      // Load root
+      const rootEntries = await loadChildren('/');
+      roots = rootEntries.map(e => ({
+        entry: e, path: `/${e.name}`, depth: 0, expanded: false, children: null,
+      }));
+
+      if (segments.length === 0) {
+        // Just root
+        setTreeData(roots);
+        setRemotePath('/'); setPathInput('/');
+        setLoading(false); return;
+      }
+
+      // Walk down each segment, expanding as we go
+      let parentNodes = roots;
+      for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i];
+        currentPath = '/' + segments.slice(0, i + 1).join('/');
+        const node = parentNodes.find(n => n.entry.name === seg && n.entry.is_dir);
+        if (!node) break;
+
+        if (i < segments.length - 1 || true) {
+          // Load children for this node
+          try {
+            const entries = await loadChildren(currentPath);
+            node.children = entries.map(e => ({
+              entry: e,
+              path: currentPath.endsWith('/') ? `${currentPath}${e.name}` : `${currentPath}/${e.name}`,
+              depth: i + 1, expanded: false, children: null,
+            }));
+            node.expanded = true;
+            parentNodes = node.children;
+          } catch { node.expanded = false; break; }
+        }
+      }
+
+      setTreeData(roots);
+      setRemotePath(targetPath); setPathInput(targetPath);
+      setSelectedSet(new Set());
+      scrollTargetRef.current = targetPath;
     } catch (e: any) {
       setError(typeof e === 'string' ? e : e?.message || '列出目录失败');
     } finally { setLoading(false); }
   }, [loadChildren]);
 
-  useEffect(() => { loadRoot('/'); }, [loadRoot]);
+  useEffect(() => { buildTreeToPath('/'); }, [buildTreeToPath]);
 
-  // Native drag-drop with fallback dialog
+  // Scroll to target path after tree renders
+  const scrollTargetRef = useRef<string | null>(null);
   useEffect(() => {
-    const unlisten = getCurrentWindow().onDragDropEvent(async (event) => {
-      if (event.payload.type === 'over') { setDragOverPanel(true); return; }
-      if (event.payload.type === 'leave') { setDragOverPanel(false); return; }
-      if (event.payload.type !== 'drop') return;
-      setDragOverPanel(false);
-      const { paths, position } = event.payload;
+    if (!scrollTargetRef.current) return;
+    const path = scrollTargetRef.current.replace(/\/$/, '') || '/';
+    scrollTargetRef.current = null;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const el = document.querySelector(`[data-folder="${path}"]`);
+        if (el) el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      });
+    });
+  }, [treeData]);
 
-      // Locate target directory: find folder row under drop point
-      let targetDir = remotePath;
-      if (position) {
-        const el = document.elementFromPoint(position.x, position.y);
-        const row = el?.closest?.('[data-folder]') as HTMLElement | null;
-        if (row) {
-          const p = row.getAttribute('data-folder');
-          if (p) targetDir = p;
+  // Native drag-drop
+  useEffect(() => {
+    let cancelled = false;
+    const setup = async () => {
+      const unlisten = await getCurrentWindow().onDragDropEvent(async (event) => {
+        if (cancelled) return;
+        if (event.payload.type === 'over') { setDragOverPanel(true); return; }
+        if (event.payload.type === 'leave') { setDragOverPanel(false); return; }
+        if (event.payload.type !== 'drop') return;
+        setDragOverPanel(false);
+        const { paths } = event.payload;
+        // Show inline dialog to confirm target path
+        setDropTargetPath(remotePathRef.current);
+        setDropDialog({ paths });
+      });
+      if (cancelled) { unlisten(); }
+      return unlisten;
+    };
+    const promise = setup();
+    return () => { cancelled = true; promise.then(unlisten => unlisten?.()); };
+  }, []); // run once, use ref for path
+
+  const confirmUpload = async () => {
+    if (!dropDialog) return;
+    const targetDir = dropTargetPath || '/';
+    for (const fp of dropDialog.paths) {
+      try {
+        const id = await invoke<string>('transfer_upload', { connectionId, localPath: fp, remoteDir: targetDir });
+        addTransfer({ id, connection_id: connectionId, direction: 'upload',
+          remote_path: targetDir + '/' + (fp.split('/').pop() || 'upload'),
+          local_path: fp, bytes_transferred: 0, status: 'queued' });
+      } catch (e: any) { setError(e?.toString() || '上传失败'); }
+    }
+    setDropDialog(null);
+  };
+
+  const tabComplete = async () => {
+    setCompletions([]);
+    const val = pathInput;
+    const lastSlash = val.lastIndexOf('/');
+    const dir = lastSlash >= 0 ? (val.substring(0, lastSlash) || '/') : '/';
+    const partial = val.substring(lastSlash + 1);
+    try {
+      const entries = await invoke<FileEntry[]>('sftp_list', { connectionId, path: dir });
+      const matches = entries
+        .filter(e => e.name.toLowerCase().startsWith(partial.toLowerCase()))
+        .map(e => e.name + (e.is_dir ? '/' : ''));
+      if (matches.length === 1) {
+        setPathInput(dir + (dir.endsWith('/') ? '' : '/') + matches[0]);
+      } else if (matches.length > 1) {
+        let common = partial;
+        for (let i = partial.length; i < matches[0].length; i++) {
+          const c = matches[0][i];
+          if (matches.every(m => m.length > i && m[i] === c)) common += c;
+          else break;
+        }
+        if (common !== partial) {
+          setPathInput(dir + (dir.endsWith('/') ? '' : '/') + common);
+        }
+        setCompletions(matches);
+      }
+    } catch { /* ignore */ }
+  };
+
+  const tabCompleteDrop = async () => {
+    const val = dropTargetPath;
+    const lastSlash = val.lastIndexOf('/');
+    const dir = lastSlash >= 0 ? (val.substring(0, lastSlash) || '/') : '/';
+    const partial = val.substring(lastSlash + 1);
+    try {
+      const entries = await invoke<FileEntry[]>('sftp_list', { connectionId, path: dir });
+      const matches = entries
+        .filter(e => e.name.toLowerCase().startsWith(partial.toLowerCase()))
+        .map(e => e.name + (e.is_dir ? '/' : ''));
+      if (matches.length === 1) {
+        setDropTargetPath(dir + (dir.endsWith('/') ? '' : '/') + matches[0]);
+      } else if (matches.length > 1) {
+        let common = partial;
+        for (let i = partial.length; i < matches[0].length; i++) {
+          const c = matches[0][i];
+          if (matches.every(m => m.length > i && m[i] === c)) common += c;
+          else break;
+        }
+        if (common !== partial) {
+          setDropTargetPath(dir + (dir.endsWith('/') ? '' : '/') + common);
         }
       }
-
-      for (const fp of paths) {
-        try {
-          const id = await invoke<string>('transfer_upload', { connectionId, localPath: fp, remoteDir: targetDir });
-          addTransfer({ id, connection_id: connectionId, direction: 'upload',
-            remote_path: targetDir + '/' + (fp.split('/').pop() || 'upload'),
-            local_path: fp, bytes_transferred: 0, status: 'queued' });
-        } catch (e: any) { setError(e?.toString() || '上传失败'); }
-      }
-    });
-    return () => { unlisten.then(fn => fn()); };
-  }, [connectionId, remotePath, addTransfer]);
+    } catch { /* ignore */ }
+  };
 
   const navigateTo = () => {
     const p = pathInput.trim() || '/';
-    loadRoot(p.startsWith('/') ? p : '/' + p);
+    buildTreeToPath(p.startsWith('/') ? p : '/' + p);
   };
   const goUp = () => {
     if (remotePath === '/') return;
-    loadRoot(remotePath.substring(0, remotePath.lastIndexOf('/')) || '/');
+    buildTreeToPath(remotePath.substring(0, remotePath.lastIndexOf('/')) || '/');
   };
 
   const toggleExpand = async (node: TreeNode) => {
@@ -128,7 +242,7 @@ export default function FilePanel({ connectionId }: Props) {
     setSelectedSet(new Set(treeData.map(n => n.path)));
   };
   const doDelete = async (entry: FileEntry, path: string) => {
-    try { await invoke('sftp_delete', { connectionId, path, isDir: entry.is_dir }); loadRoot(remotePath); }
+    try { await invoke('sftp_delete', { connectionId, path, isDir: entry.is_dir }); buildTreeToPath(remotePath); }
     catch (e: any) { setError(e?.toString() || '删除失败'); }
   };
 
@@ -165,26 +279,66 @@ export default function FilePanel({ connectionId }: Props) {
   };
 
   return (
-    <div className="h-full flex flex-col text-gray-200 relative">
-      {dragOverPanel && (
-        <div className="absolute inset-0 z-40 bg-blue-500/20 border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center pointer-events-none">
-          <div className="text-blue-300 text-center">
-            <div className="text-lg font-semibold mb-1">拖放文件以远程上传</div>
-            <div className="text-sm font-mono bg-blue-900/40 rounded px-3 py-1 inline-block">目标目录：{remotePath || '/'}</div>
-          </div>
+    <div className="h-full flex flex-col text-gray-200 relative"
+      onContextMenu={(e) => e.preventDefault()}>
+      {/* Drop overlay / confirmation */}
+      {(dragOverPanel || dropDialog) && (
+        <div className="absolute inset-0 z-40 bg-blue-500/20 border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center">
+          {dropDialog ? (
+            <div className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 shadow-xl max-w-md w-full mx-4">
+              <div className="text-sm text-gray-300 mb-2">上传 {dropDialog.paths.length} 个文件</div>
+              <div className="flex items-center gap-2">
+                <input
+                  value={dropTargetPath}
+                  onChange={e => setDropTargetPath(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') confirmUpload();
+                    else if (e.key === 'Tab') { e.preventDefault(); tabCompleteDrop(); }
+                    else if (e.key === 'Escape') setDropDialog(null);
+                  }}
+                  className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-sm font-mono text-gray-300 focus:outline-none focus:border-blue-500"
+                  autoFocus
+                  placeholder="远程目标路径"
+                />
+                <button onClick={confirmUpload} className="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-sm whitespace-nowrap">上传</button>
+                <button onClick={() => setDropDialog(null)} className="text-gray-500 hover:text-gray-300 text-sm px-1">✕</button>
+              </div>
+            </div>
+          ) : (
+            <div className="text-blue-300 text-center pointer-events-none">
+              <div className="text-lg font-semibold mb-1">拖放文件以远程上传</div>
+              <div className="text-sm font-mono bg-blue-900/40 rounded px-3 py-1 inline-block">
+                目标目录：{pathInput || '/'}
+              </div>
+            </div>
+          )}
         </div>
       )}
-
-      {/* Toolbar */}
       <div className="flex items-center gap-2 px-3 py-2 bg-gray-900 border-b border-gray-800 shrink-0">
         <button onClick={goUp} className="text-gray-400 hover:text-white text-sm px-1" title="向上一级">⬆</button>
-        <button onClick={() => loadRoot(remotePath)} className="text-gray-400 hover:text-white text-sm px-1" title="刷新">↻</button>
-        <input value={pathInput} onChange={e => setPathInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && navigateTo()} onBlur={navigateTo}
+        <button onClick={() => buildTreeToPath(remotePath)} className="text-gray-400 hover:text-white text-sm px-1" title="刷新">↻</button>
+        <input value={pathInput} onChange={e => { setPathInput(e.target.value); setCompletions([]); }}
+          onKeyDown={e => { if (e.key === 'Enter') navigateTo(); else if (e.key === 'Tab') { e.preventDefault(); tabComplete(); } }}
+          onBlur={() => setCompletions([])}
           className="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-0.5 text-xs font-mono text-gray-300 focus:outline-none focus:border-blue-500"
-          placeholder="远程路径，回车跳转" />
+          placeholder="远程路径，回车跳转，Tab 补全" />
         <button onClick={handleUploadClick} className="text-xs bg-blue-600 hover:bg-blue-500 px-2 py-0.5 rounded whitespace-nowrap">⬆ 上传</button>
       </div>
+
+      {/* Tab completions dropdown */}
+      {completions.length > 0 && (
+        <div className="bg-gray-800 border border-gray-700 rounded-b mx-3 shadow-lg max-h-32 overflow-y-auto shrink-0">
+          {completions.map(c => (
+            <button key={c} onClick={() => {
+              const val = pathInput;
+              const lastSlash = val.lastIndexOf('/');
+              const dir = lastSlash >= 0 ? (val.substring(0, lastSlash) || '/') : '/';
+              setPathInput(dir + (dir.endsWith('/') ? '' : '/') + c);
+              setCompletions([]);
+            }} className="w-full text-left px-3 py-1 text-xs text-gray-300 hover:bg-gray-700 font-mono">{c}</button>
+          ))}
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-900/40 text-red-300 px-3 py-1 text-xs flex items-center justify-between shrink-0">
@@ -220,7 +374,7 @@ export default function FilePanel({ connectionId }: Props) {
               try { await invoke('sftp_delete', { connectionId, path: row.node.path, isDir: row.node.entry.is_dir }); count++; } catch {}
             }
             setConfirmDelete(null);
-            if (count > 0) loadRoot(remotePath);
+            if (count > 0) buildTreeToPath(remotePath);
           }} className="text-red-400 hover:text-red-300 px-2 py-0.5 border border-red-700 rounded">🗑 删除选中</button>
           <button onClick={() => setSelectedSet(new Set())} className="text-gray-500 hover:text-gray-300 ml-auto">清除选择</button>
         </div>

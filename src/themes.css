@@ -1,0 +1,134 @@
+@import './tokens.css';
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme 1: 暗色深度 (线性暗)
+   Inspired by Linear.app + Bauhaus precision
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root, [data-theme="dark"] {
+  --color-bg: #08090a;
+  --depth-0: #08090a; --depth-1: #0f1011; --depth-2: #151518; --depth-3: #1b1c1f; --depth-4: #222226;
+  --text-primary: #f7f8f8; --text-secondary: #8a8f98; --text-tertiary: #62666d; --text-disabled: #3e4046;
+  --accent: #5e6ad2; --accent-soft: rgba(94,106,210,0.15); --accent-hover: #828fff;
+  --danger: #f87171; --danger-soft: rgba(248,113,113,0.15); --success: #27a644; --warning: #e0af68;
+  --border-subtle: rgba(255,255,255,0.05); --border-default: rgba(255,255,255,0.08); --border-strong: rgba(255,255,255,0.12);
+  --hover: rgba(255,255,255,0.04); --active: rgba(255,255,255,0.08);
+  --terminal-bg: #08090a; --terminal-fg: #d0d6e0;
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3); --shadow-md: 0 4px 12px rgba(0,0,0,0.4); --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme 2: 极简瑞士 (Swiss Minimalism)
+   Grid system · Helvetica · 黑白分明
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="light"] {
+  --color-bg: #ffffff;
+  --depth-0: #ffffff; --depth-1: #fafafa; --depth-2: #f4f4f5; --depth-3: #e4e4e7; --depth-4: #d4d4d8;
+  --text-primary: #18181b; --text-secondary: #3f3f46; --text-tertiary: #71717a; --text-disabled: #a1a1aa;
+  --accent: #18181b; --accent-soft: rgba(24,24,27,0.1); --accent-hover: #52525b;
+  --danger: #dc2626; --danger-soft: rgba(220,38,38,0.1); --success: #16a34a; --warning: #a16207;
+  --border-subtle: #e4e4e7; --border-default: #d4d4d8; --border-strong: #a1a1aa;
+  --hover: rgba(0,0,0,0.04); --active: rgba(0,0,0,0.08);
+  --terminal-bg: #ffffff; --terminal-fg: #18181b;
+  --radius-sm: 0px; --radius-md: 0px; --radius-lg: 0px; --radius-xl: 0px;
+  --font-sans: 'Helvetica Neue', 'Inter', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --shadow-sm: none; --shadow-md: none; --shadow-lg: none;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme 3: 和风诧寂 (Wabi-Sabi)
+   Earth tones · 自然肌理 · 不完美美学
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="warm"] {
+  --color-bg: #f5f0e8;
+  --depth-0: #f5f0e8; --depth-1: #ede6d8; --depth-2: #e8dfcc; --depth-3: #e0d5c0; --depth-4: #d8ccb5;
+  --text-primary: #2d2818; --text-secondary: #6b6538; --text-tertiary: #8b8558; --text-disabled: #b8b288;
+  --accent: #8b7d5e; --accent-soft: rgba(139,125,94,0.15); --accent-hover: #5d4d2e;
+  --danger: #a04030; --danger-soft: rgba(160,64,48,0.12); --success: #5a7d3e; --warning: #a07020;
+  --border-subtle: rgba(0,0,0,0.08); --border-default: rgba(0,0,0,0.12); --border-strong: rgba(0,0,0,0.18);
+  --hover: rgba(139,125,94,0.08); --active: rgba(139,125,94,0.15);
+  --terminal-bg: #f5f0e8; --terminal-fg: #2d2818;
+  --radius-sm: 8px; --radius-md: 10px; --radius-lg: 14px; --radius-xl: 18px;
+  --font-sans: 'Georgia', 'Noto Serif SC', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --shadow-sm: 0 1px 1px rgba(0,0,0,0.04); --shadow-md: 0 2px 4px rgba(0,0,0,0.06); --shadow-lg: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme 4: 赛博暗潮 (Cyberpunk)
+   Neon · 高对比 · 未来暗色
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="cyber"] {
+  --color-bg: #0a0a0f;
+  --depth-0: #0a0a0f; --depth-1: #0f0f18; --depth-2: #141420; --depth-3: #1a1a2a; --depth-4: #222234;
+  --text-primary: #e0e0f0; --text-secondary: #8888aa; --text-tertiary: #555577; --text-disabled: #333355;
+  --accent: #ff2d95; --accent-soft: rgba(255,45,149,0.15); --accent-hover: #ff5ab5;
+  --danger: #ff4444; --danger-soft: rgba(255,68,68,0.15); --success: #00ff88; --warning: #ffaa00;
+  --border-subtle: rgba(255,45,149,0.08); --border-default: rgba(255,45,149,0.12); --border-strong: rgba(255,45,149,0.2);
+  --hover: rgba(255,45,149,0.06); --active: rgba(255,45,149,0.12);
+  --terminal-bg: #0a0a0f; --terminal-fg: #00ff88;
+  --radius-sm: 2px; --radius-md: 4px; --radius-lg: 6px; --radius-xl: 8px;
+  --font-sans: 'SF Mono', 'JetBrains Mono', monospace;
+  --font-mono: 'SF Mono', 'JetBrains Mono', monospace;
+  --shadow-sm: 0 0 8px rgba(255,45,149,0.2); --shadow-md: 0 0 16px rgba(255,45,149,0.3); --shadow-lg: 0 0 24px rgba(255,45,149,0.4);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme 5: 冰川极光 (Aurora)
+   Cool blues · 通透 · 冷静
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="aurora"] {
+  --color-bg: #0d1117;
+  --depth-0: #0d1117; --depth-1: #161b22; --depth-2: #1c2330; --depth-3: #212a3a; --depth-4: #293548;
+  --text-primary: #c9d1d9; --text-secondary: #8b949e; --text-tertiary: #586069; --text-disabled: #30363d;
+  --accent: #58a6ff; --accent-soft: rgba(88,166,255,0.15); --accent-hover: #79c0ff;
+  --danger: #f85149; --danger-soft: rgba(248,81,73,0.15); --success: #3fb950; --warning: #d2991d;
+  --border-subtle: #21262d; --border-default: #30363d; --border-strong: #484f58;
+  --hover: rgba(88,166,255,0.05); --active: rgba(88,166,255,0.1);
+  --terminal-bg: #0d1117; --terminal-fg: #c9d1d9;
+  --radius-sm: 10px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 20px;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  --shadow-sm: 0 1px 0 rgba(88,166,255,0.05); --shadow-md: 0 4px 12px rgba(0,0,0,0.4); --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme 6: 月光银 (Moonlight)
+   Cool silver · 通透 · 现代
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="moon"] {
+  --color-bg: #1a1a2e;
+  --depth-0: #1a1a2e; --depth-1: #222240; --depth-2: #2a2a50; --depth-3: #333360; --depth-4: #3d3d70;
+  --text-primary: #e8e8f0; --text-secondary: #a0a0c0; --text-tertiary: #606080; --text-disabled: #404060;
+  --accent: #c0c0ff; --accent-soft: rgba(192,192,255,0.12); --accent-hover: #e0e0ff;
+  --danger: #ff6b6b; --danger-soft: rgba(255,107,107,0.12); --success: #6be0a0; --warning: #ffc06b;
+  --border-subtle: rgba(192,192,255,0.06); --border-default: rgba(192,192,255,0.1); --border-strong: rgba(192,192,255,0.16);
+  --hover: rgba(192,192,255,0.05); --active: rgba(192,192,255,0.1);
+  --terminal-bg: #1a1a2e; --terminal-fg: #c0c0ff;
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 16px;
+  --font-sans: -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --shadow-sm: 0 0 4px rgba(192,192,255,0.08); --shadow-md: 0 4px 16px rgba(0,0,0,0.5); --shadow-lg: 0 8px 24px rgba(0,0,0,0.6);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   Theme 7: 暖橙 (Sunset)
+   Warm amber · 柔和 · 舒适
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+[data-theme="sunset"] {
+  --color-bg: #2d2018;
+  --depth-0: #2d2018; --depth-1: #352820; --depth-2: #3d3028; --depth-3: #453830; --depth-4: #504038;
+  --text-primary: #f0e0d0; --text-secondary: #c0a090; --text-tertiary: #806050; --text-disabled: #504030;
+  --accent: #ff8c42; --accent-soft: rgba(255,140,66,0.12); --accent-hover: #ffa866;
+  --danger: #ff4444; --danger-soft: rgba(255,68,68,0.12); --success: #6bc060; --warning: #ffc040;
+  --border-subtle: rgba(255,140,66,0.06); --border-default: rgba(255,140,66,0.1); --border-strong: rgba(255,140,66,0.16);
+  --hover: rgba(255,140,66,0.05); --active: rgba(255,140,66,0.1);
+  --terminal-bg: #2d2018; --terminal-fg: #f0e0d0;
+  --radius-sm: 4px; --radius-md: 6px; --radius-lg: 8px; --radius-xl: 10px;
+  --font-sans: -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --shadow-sm: 0 1px 2px rgba(255,140,66,0.06); --shadow-md: 0 4px 12px rgba(0,0,0,0.4); --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+}

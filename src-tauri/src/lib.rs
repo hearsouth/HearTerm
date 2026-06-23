@@ -34,6 +34,7 @@ pub fn run() {
         .manage(database)
         .invoke_handler(tauri::generate_handler![
             commands::connection::connect,
+            commands::connection::test_connection,
             commands::connection::disconnect,
             commands::terminal::term_open,
             commands::terminal::term_write,

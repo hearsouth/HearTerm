@@ -279,14 +279,14 @@ export default function FilePanel({ connectionId }: Props) {
   };
 
   return (
-    <div className="h-full flex flex-col text-gray-200 relative"
+    <div className="h-full flex flex-col [var(--text-primary)] relative"
       onContextMenu={(e) => e.preventDefault()}>
       {/* Drop overlay / confirmation */}
       {(dragOverPanel || dropDialog) && (
-        <div className="absolute inset-0 z-40 bg-blue-500/20 border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center">
+        <div className="absolute inset-0 z-40 [var(--accent)]/20 border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center">
           {dropDialog ? (
-            <div className="bg-[#1a1b26] border border-gray-700/70 rounded-xl px-5 py-4 shadow-2xl max-w-md w-full mx-4">
-              <div className="text-sm text-gray-300 mb-3 font-medium">📤 上传 {dropDialog.paths.length} 个文件</div>
+            <div className="bg-[#1a1b26] border [var(--border-default)]/70 rounded-xl px-5 py-4 shadow-2xl max-w-md w-full mx-4">
+              <div className="text-sm [var(--text-primary)] mb-3 font-medium">📤 上传 {dropDialog.paths.length} 个文件</div>
               <div className="flex items-center gap-2">
                 <input
                   value={dropTargetPath}
@@ -296,38 +296,41 @@ export default function FilePanel({ connectionId }: Props) {
                     else if (e.key === 'Tab') { e.preventDefault(); tabCompleteDrop(); }
                     else if (e.key === 'Escape') setDropDialog(null);
                   }}
-                  className="flex-1 bg-gray-800/70 border border-gray-700/50 rounded-lg px-3 py-2 text-sm font-mono text-gray-300 focus:outline-none focus:border-blue-500/60 transition-colors"
+                  className="flex-1 [var(--depth-2)]/70 border [var(--border-default)]/50 rounded-lg px-3 py-2 text-sm font-mono [var(--text-primary)] focus:outline-none focus:[var(--accent)]/60 transition-colors"
                   autoFocus
                   placeholder="远程目标路径"
                 />
-                <button onClick={confirmUpload} className="bg-blue-600/90 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm whitespace-nowrap font-medium transition-all duration-150">上传</button>
-                <button onClick={() => setDropDialog(null)} className="text-gray-500 hover:text-gray-300 text-sm px-1.5 py-1 rounded hover:bg-gray-700/50 transition-colors">✕</button>
+                <button onClick={confirmUpload} className="[var(--accent)]/90 hover:[var(--accent)] px-4 py-2 rounded-lg text-sm whitespace-nowrap font-medium transition-all duration-150">上传</button>
+                <button onClick={() => setDropDialog(null)} className="[var(--text-tertiary)] hover:[var(--text-primary)] text-sm px-1.5 py-1 rounded hover:[var(--depth-3)]/50 transition-colors">✕</button>
               </div>
             </div>
           ) : (
-            <div className="text-blue-300 text-center pointer-events-none">
+            <div className="[var(--accent-hover)] text-center pointer-events-none">
               <div className="text-lg font-semibold mb-1">拖放文件以远程上传</div>
-              <div className="text-sm font-mono bg-blue-900/40 rounded px-3 py-1 inline-block">
+              <div className="text-sm font-mono [var(--accent-soft)]/40 rounded px-3 py-1 inline-block">
                 目标目录：{pathInput || '/'}
               </div>
             </div>
           )}
         </div>
       )}
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-[#111318] border-b border-gray-800/70 shrink-0">
-        <button onClick={goUp} className="text-gray-400 hover:text-white text-sm px-1.5 py-0.5 rounded hover:bg-gray-700/50 transition-colors" title="向上一级">⬆</button>
-        <button onClick={() => buildTreeToPath(remotePath)} className="text-gray-400 hover:text-white text-sm px-1.5 py-0.5 rounded hover:bg-gray-700/50 transition-colors" title="刷新">↻</button>
+      <div className="flex items-center gap-1.5 px-2 py-2 bg-[var(--bg-panel)] backdrop-blur-xl border-b border-[var(--border)] shrink-0">
+        <button onClick={goUp} title="上级目录"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs px-1 rounded transition-colors">⬆</button>
+        <button onClick={() => buildTreeToPath(remotePath)} title="刷新"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs px-1 rounded transition-colors">↻</button>
         <input value={pathInput} onChange={e => { setPathInput(e.target.value); setCompletions([]); }}
           onKeyDown={e => { if (e.key === 'Enter') navigateTo(); else if (e.key === 'Tab') { e.preventDefault(); tabComplete(); } }}
           onBlur={() => setCompletions([])}
-          className="flex-1 bg-gray-800/60 border border-gray-700/50 rounded-lg px-3 py-1.5 text-xs font-mono text-gray-300 focus:outline-none focus:border-blue-500/60 focus:ring-1 focus:ring-blue-500/20 transition-colors"
-          placeholder="远程路径，回车跳转，Tab 补全" />
-        <button onClick={handleUploadClick} className="text-xs bg-blue-600/90 hover:bg-blue-500 px-3 py-1.5 rounded-lg whitespace-nowrap font-medium transition-all duration-150 shadow-sm shadow-blue-900/30">⬆ 上传</button>
+          className="flex-1 min-w-0 bg-[var(--bg-input)] border border-[var(--border)] rounded px-2 py-1 text-xs font-mono text-[var(--text-primary)] outline-none"
+          placeholder="路径，回车跳转" />
+        <button onClick={handleUploadClick} title="上传文件"
+          className="text-[var(--accent)] hover:bg-[var(--accent-soft)] text-xs px-2 py-1 rounded whitespace-nowrap transition-colors shrink-0">⬆ 上传</button>
       </div>
 
       {/* Tab completions dropdown */}
       {completions.length > 0 && (
-        <div className="bg-gray-800 border border-gray-700 rounded-b mx-3 shadow-lg max-h-32 overflow-y-auto shrink-0">
+        <div className="[var(--depth-2)] border [var(--border-default)] rounded-b mx-3 shadow-lg max-h-32 overflow-y-auto shrink-0">
           {completions.map(c => (
             <button key={c} onClick={() => {
               const val = pathInput;
@@ -335,21 +338,21 @@ export default function FilePanel({ connectionId }: Props) {
               const dir = lastSlash >= 0 ? (val.substring(0, lastSlash) || '/') : '/';
               setPathInput(dir + (dir.endsWith('/') ? '' : '/') + c);
               setCompletions([]);
-            }} className="w-full text-left px-3 py-1 text-xs text-gray-300 hover:bg-gray-700 font-mono">{c}</button>
+            }} className="w-full text-left px-3 py-1 text-xs [var(--text-primary)] hover:[var(--depth-3)] font-mono">{c}</button>
           ))}
         </div>
       )}
 
       {error && (
-        <div className="bg-red-900/30 border-b border-red-800/40 text-red-300 px-3 py-1.5 text-xs flex items-center justify-between shrink-0">
-          <span>{error}</span><button onClick={() => setError('')} className="text-red-400 hover:text-red-200 px-1">✕</button>
+        <div className="[var(--danger-soft)]/30 border-b [var(--danger)]/40 [var(--danger)] px-3 py-1.5 text-xs flex items-center justify-between shrink-0">
+          <span>{error}</span><button onClick={() => setError('')} className="[var(--danger)] hover:text-[var(--danger)] px-1">✕</button>
         </div>
       )}
 
       {/* Bulk actions */}
       {selectedSet.size > 0 && (
-        <div className="bg-blue-900/20 border-b border-blue-800/40 px-3 py-2 flex items-center gap-2 shrink-0 text-xs">
-          <span className="text-blue-300 font-medium">已选 {selectedSet.size} 项</span>
+        <div className="[var(--accent-soft)]/20 border-b border-blue-800/40 px-3 py-2 flex items-center gap-2 shrink-0 text-xs">
+          <span className="[var(--accent-hover)] font-medium">已选 {selectedSet.size} 项</span>
           <button onClick={async () => {
             const dir = await open({ directory: true, title: '选择批量保存目录' });
             if (!dir) return;
@@ -363,7 +366,7 @@ export default function FilePanel({ connectionId }: Props) {
                   remote_path: row.node.path, local_path: localDir + '/' + row.node.entry.name, bytes_transferred: 0, status: 'queued' });
               } catch {}
             }
-          }} className="text-blue-300 hover:text-blue-200 px-2 py-0.5 border border-blue-700 rounded">⬇ 下载选中</button>
+          }} className="[var(--accent-hover)] hover:[var(--accent-hover)] px-2 py-0.5 border border-blue-700 rounded">⬇ 下载选中</button>
           <button onClick={async () => {
             if (confirmDelete) { setConfirmDelete(null); return; }
             setConfirmDelete({ name: '__bulk__', is_dir: false, size: 0, modified: 0 });
@@ -375,24 +378,24 @@ export default function FilePanel({ connectionId }: Props) {
             }
             setConfirmDelete(null);
             if (count > 0) buildTreeToPath(remotePath);
-          }} className="text-red-400 hover:text-red-300 px-2 py-0.5 border border-red-700 rounded">🗑 删除选中</button>
-          <button onClick={() => setSelectedSet(new Set())} className="text-gray-500 hover:text-gray-300 ml-auto">清除选择</button>
+          }} className="[var(--danger)] hover:[var(--danger)] px-2 py-0.5 border border-red-700 rounded">🗑 删除选中</button>
+          <button onClick={() => setSelectedSet(new Set())} className="[var(--text-tertiary)] hover:[var(--text-primary)] ml-auto">清除选择</button>
         </div>
       )}
 
       {/* File tree */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="text-gray-500 text-sm p-4">加载中…</div>
+          <div className="[var(--text-tertiary)] text-sm p-4">加载中…</div>
         ) : (
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-[#111318] text-gray-500 text-[11px] z-10">
+            <thead className="sticky top-0 z-10 backdrop-blur-md text-[11px]" style={{background:'var(--depth-2)',color:'var(--text-tertiary)'}}>
               <tr>
                 <th className="w-8 px-2 py-2"><input type="checkbox" checked={selectedSet.size === treeData.length && treeData.length > 0}
-                  onChange={selectAll} className="rounded bg-gray-700 border-gray-600" /></th>
-                <th className="text-left py-2 font-medium">名称</th>
-                <th className="text-right px-2 py-2 w-20 font-medium">大小</th>
-                <th className="text-right px-2 py-2 w-36 font-medium">修改时间</th>
+                  onChange={selectAll} className="rounded" style={{accentColor:'var(--accent)'}} /></th>
+                <th className="text-left py-2 font-medium" style={{color:'var(--text-tertiary)'}}>名称</th>
+                <th className="text-right px-2 py-2 w-20 font-medium" style={{color:'var(--text-tertiary)'}}>大小</th>
+                <th className="text-right px-2 py-2 w-36 font-medium" style={{color:'var(--text-tertiary)'}}>修改时间</th>
                 <th className="w-24"></th>
               </tr>
             </thead>
@@ -401,11 +404,11 @@ export default function FilePanel({ connectionId }: Props) {
                 <Fragment key={node.path}>
                   <tr
                     data-folder={node.entry.is_dir ? node.path : undefined}
-                    className={`cursor-pointer hover:bg-gray-800/50 ${selectedSet.has(node.path) ? 'bg-blue-900/20' : ''}`}>
+                    className={`cursor-pointer hover:[var(--depth-2)]/50 ${selectedSet.has(node.path) ? '[var(--accent-soft)]/20' : ''}`}>
                     {/* Checkbox — always at left edge */}
                     <td className="px-2 py-1" onClick={ev => ev.stopPropagation()}>
                       <input type="checkbox" checked={selectedSet.has(node.path)}
-                        onChange={() => toggleSelect(node.path)} className="rounded bg-gray-700 border-gray-600" />
+                        onChange={() => toggleSelect(node.path)} className="rounded [var(--depth-3)] border-gray-600" />
                     </td>
                     {/* Name column — indented with arrow + icon */}
                     <td className="py-1 truncate max-w-[200px]"
@@ -413,7 +416,7 @@ export default function FilePanel({ connectionId }: Props) {
                       onClick={() => node.entry.is_dir && toggleExpand(node)}>
                       <span className="inline-flex items-center gap-1">
                         {node.entry.is_dir && (
-                          <span className="text-gray-500 text-[10px] w-3 text-center inline-block leading-none">
+                          <span className="[var(--text-tertiary)] text-[10px] w-3 text-center inline-block leading-none">
                             {node.expanded ? '▼' : '▶'}
                           </span>
                         )}
@@ -421,22 +424,22 @@ export default function FilePanel({ connectionId }: Props) {
                         <span className="truncate">{node.entry.name}</span>
                       </span>
                     </td>
-                    <td className="px-2 py-1 text-right text-gray-500" onClick={ev => ev.stopPropagation()}>
+                    <td className="px-2 py-1 text-right [var(--text-tertiary)]" onClick={ev => ev.stopPropagation()}>
                       {node.entry.is_dir ? '-' : formatSize(node.entry.size)}
                     </td>
-                    <td className="px-2 py-1 text-right text-gray-600 text-xs" onClick={ev => ev.stopPropagation()}>
+                    <td className="px-2 py-1 text-right [var(--text-tertiary)] text-xs" onClick={ev => ev.stopPropagation()}>
                       {node.entry.modified ? new Date(node.entry.modified * 1000).toLocaleString() : '-'}
                     </td>
                     <td className="pr-2 py-1 flex gap-0.5 justify-end" onClick={ev => ev.stopPropagation()}>
                       <button onClick={() => handleDownload(node)}
-                        className="text-gray-500 hover:text-blue-400 text-xs px-1">{node.entry.is_dir ? '📥' : '⬇'}</button>
+                        className="[var(--text-tertiary)] hover:[var(--accent)] text-xs px-1">{node.entry.is_dir ? '📥' : '⬇'}</button>
                       {confirmDelete?.name === node.entry.name ? (<>
                         <button onClick={() => { doDelete(node.entry, node.path); setConfirmDelete(null); }}
-                          className="text-red-400 hover:text-red-300 text-xs px-1 font-bold">确认</button>
-                        <button onClick={() => setConfirmDelete(null)} className="text-gray-500 hover:text-gray-300 text-xs px-1">✕</button>
+                          className="[var(--danger)] hover:[var(--danger)] text-xs px-1 font-bold">确认</button>
+                        <button onClick={() => setConfirmDelete(null)} className="[var(--text-tertiary)] hover:[var(--text-primary)] text-xs px-1">✕</button>
                       </>) : (
                         <button onClick={() => { setConfirmDelete({ ...node.entry }); setSelectedSet(new Set()); }}
-                          className="text-gray-500 hover:text-red-400 text-xs px-1">🗑</button>
+                          className="[var(--text-tertiary)] hover:[var(--danger)] text-xs px-1">🗑</button>
                       )}
                     </td>
                   </tr>
@@ -447,10 +450,9 @@ export default function FilePanel({ connectionId }: Props) {
         )}
       </div>
 
-      <div className="text-xs text-gray-600 px-3 py-1.5 bg-[#111318] border-t border-gray-800/70 shrink-0 flex items-center gap-3">
-        <span>{treeData.length} 项</span>
-        {selectedSet.size > 0 && <span className="text-blue-400/70">{selectedSet.size} 选中</span>}
-        <span className="ml-auto text-gray-700">{remotePath}</span>
+      <div className="text-xs [var(--text-muted)] px-3 py-1.5 [var(--bg-panel)] border-t border-[var(--border)] shrink-0 flex items-center gap-3">
+        {selectedSet.size > 0 && <span className="[var(--text-secondary)]">{selectedSet.size} 选中</span>}
+        <span className="ml-auto [var(--text-muted)]">{remotePath}</span>
       </div>
       <TransferQueue />
     </div>

@@ -6,6 +6,22 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 import 'xterm/css/xterm.css';
 
+const TERMINAL_THEMES: Record<string, { bg: string; fg: string }> = {
+  dark:   { bg: '#08090a', fg: '#d0d6e0' },
+  light:  { bg: '#ffffff', fg: '#18181b' },
+  warm:   { bg: '#f5f0e8', fg: '#2d2818' },
+  cyber:  { bg: '#0a0a0f', fg: '#00ff88' },
+  aurora: { bg: '#0d1117', fg: '#c9d1d9' },
+  moon:   { bg: '#1a1a2e', fg: '#c0c0ff' },
+  sunset: { bg: '#2d2018', fg: '#f0e0d0' },
+};
+
+const DEFAULT_THEME = 'dark';
+
+function getTerminalColors(theme: string) {
+  return TERMINAL_THEMES[theme] || TERMINAL_THEMES[DEFAULT_THEME];
+}
+
 interface Props {
   terminalId: string;
   connectionId: string;
@@ -21,6 +37,9 @@ export default function TerminalPanel({ terminalId, connectionId }: Props) {
   useEffect(() => {
     if (!termRef.current) return;
 
+    const currentTheme = document.documentElement.getAttribute('data-theme') || DEFAULT_THEME;
+    const colors = getTerminalColors(currentTheme);
+
     const term = new Terminal({
       cursorBlink: true,
       fontSize: 14,
@@ -28,26 +47,10 @@ export default function TerminalPanel({ terminalId, connectionId }: Props) {
       scrollback: 10000,
       allowProposedApi: true,
       theme: {
-        background: '#1a1b26',
-        foreground: '#a9b1d6',
-        cursor: '#c0caf5',
-        selectionBackground: '#33467c',
-        black: '#32344a',
-        red: '#f7768e',
-        green: '#9ece6a',
-        yellow: '#e0af68',
-        blue: '#7aa2f7',
-        magenta: '#ad8ee6',
-        cyan: '#449dab',
-        white: '#9699a8',
-        brightBlack: '#444b6a',
-        brightRed: '#ff7a93',
-        brightGreen: '#b9f27c',
-        brightYellow: '#ff9e64',
-        brightBlue: '#7da6ff',
-        brightMagenta: '#bb9af7',
-        brightCyan: '#0db9d7',
-        brightWhite: '#acb0d0',
+        background: colors.bg,
+        foreground: colors.fg,
+        cursor: colors.fg,
+        selectionBackground: 'rgba(128,128,128,0.3)',
       },
     });
 
@@ -61,16 +64,23 @@ export default function TerminalPanel({ terminalId, connectionId }: Props) {
     terminalRef.current = term;
     fitAddonRef.current = fitAddon;
 
-    // User input → send to backend
+    // Theme change → update terminal colors
+    const themeObserver = new MutationObserver(() => {
+      const t = document.documentElement.getAttribute('data-theme') || DEFAULT_THEME;
+      const c = getTerminalColors(t);
+      term.options.theme = {
+        ...term.options.theme,
+        background: c.bg,
+        foreground: c.fg,
+        cursor: c.fg,
+      };
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
     term.onData((data) => {
-      const bytes = new TextEncoder().encode(data);
-      invoke('term_write', {
-        terminalId,
-        data: Array.from(bytes),
-      }).catch(console.error);
+      invoke('term_write', { terminalId, data: Array.from(new TextEncoder().encode(data)) }).catch(console.error);
     });
 
-    // Backend output → render in terminal
     const unlistenPromise = listen<{ connection_id: string; data: number[] }>(
       'terminal-output',
       (event) => {
@@ -80,18 +90,15 @@ export default function TerminalPanel({ terminalId, connectionId }: Props) {
       },
     );
 
-    // Open terminal channel on backend
     invoke('term_open', { terminalId, connectionId }).catch(console.error);
 
-    // Handle container resize (splitter drag, etc.)
-    const resizeObserver = new ResizeObserver(() => {
-      fitAddon.fit();
-    });
+    const resizeObserver = new ResizeObserver(() => fitAddon.fit());
     resizeObserver.observe(termRef.current);
 
     return () => {
       unlistenPromise.then((unlisten) => unlisten());
       resizeObserver.disconnect();
+      themeObserver.disconnect();
       term.dispose();
     };
   }, [terminalId, connectionId]);

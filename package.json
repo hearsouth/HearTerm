@@ -1,7 +1,7 @@
 {
   "name": "hear-term",
   "private": false,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Cross-platform SSH client with terminal, SFTP file manager, themes, and drag-drop upload",
   "author": "hearsouth3069",
   "license": "MIT",

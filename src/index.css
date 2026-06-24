@@ -33,6 +33,12 @@
   ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
   ::-webkit-scrollbar-corner { background: transparent; }
 
+  /* Hide Windows/Edge native password reveal */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
+  }
+
   .xterm, .xterm-screen, .xterm-viewport, .xterm-helper-textarea, .xterm-scroll-area {
     background: var(--terminal-bg) !important;
   }

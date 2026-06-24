@@ -6,9 +6,11 @@ interface Props {
   onNewConnection: () => void;
   onEditConnection: (conn: Connection) => void;
   onConnect: (id: string) => void;
+  showNewGroup?: boolean;
+  onShowNewGroupChange?: (v: boolean) => void;
 }
 
-export default function ConnectionList({ onNewConnection, onEditConnection, onConnect }: Props) {
+export default function ConnectionList({ onNewConnection, onEditConnection, onConnect, showNewGroup: showNewGroupProp, onShowNewGroupChange }: Props) {
   const { connections, setConnections, activeId } = useConnectionStore();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -17,7 +19,7 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [editingGroup, setEditingGroup] = useState<string | null>(null);
   const [editGroupName, setEditGroupName] = useState('');
-  const [showNewGroup, setShowNewGroup] = useState(false);
+  const showNewGroup = showNewGroupProp ?? false;
   const [newGroupName, setNewGroupName] = useState('');
   const [allGroups, setAllGroups] = useState<string[]>([]);
   const [moveMenuConnId, setMoveMenuConnId] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
       refresh();
       setCollapsedGroups(prev => { const n = new Set(prev); n.delete(name); return n; });
     } catch (e: any) { setConnectError(e?.toString() || '创建分组失败'); }
-    setShowNewGroup(false);
+    onShowNewGroupChange?.(false);
     setNewGroupName('');
   };
 
@@ -110,7 +112,7 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
   };
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-0.5">
+    <div className="flex-1 overflow-y-auto">
       {connectError && (
         <div className="[var(--danger-soft)]/30 border [var(--danger)]/50 [var(--danger)] px-3 py-2 rounded-md text-xs mb-2 flex justify-between items-center">
           <span>{connectError}</span>
@@ -124,8 +126,8 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
         </p>
       ) : (
         Object.entries(grouped).map(([group, conns]) => (
-          <div key={group}>
-            <div className="flex items-center gap-1.5 px-1.5 py-1 rounded-md transition-colors hover:bg-[var(--bg-hover)] group">
+          <div key={group} className="mb-1.5">
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors group" style={{background:'var(--depth-2)'}}>
               <button onClick={() => toggleGroup(group)} className="text-[10px] shrink-0 transition-colors" style={{ color: 'var(--text-muted)' }}>
                 {collapsedGroups.has(group) ? '▶' : '▼'}
               </button>
@@ -199,14 +201,14 @@ export default function ConnectionList({ onNewConnection, onEditConnection, onCo
       {showNewGroup ? (
         <div className="flex items-center gap-1.5 px-1.5 py-1.5">
           <input value={newGroupName} onChange={e => setNewGroupName(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') createGroup(); if (e.key === 'Escape') { setShowNewGroup(false); setNewGroupName(''); } }}
+            onKeyDown={e => { if (e.key === 'Enter') createGroup(); if (e.key === 'Escape') { onShowNewGroupChange?.(false); setNewGroupName(''); } }}
             placeholder="输入分组名称" autoFocus
             className="flex-1 [var(--depth-2)] border [var(--accent)]/50 rounded-md px-2.5 py-1 text-xs outline-none focus:border-blue-400 transition-colors" />
           <button onClick={createGroup} className="text-xs [var(--accent)] hover:[var(--accent-hover)] px-1.5 py-0.5 rounded hover:[var(--accent)]/10 transition-colors">✓</button>
-          <button onClick={() => { setShowNewGroup(false); setNewGroupName(''); }} className="text-xs [var(--text-tertiary)] hover:[var(--text-primary)] px-1.5 py-0.5 rounded hover:[var(--depth-3)]/50 transition-colors">✕</button>
+          <button onClick={() => { onShowNewGroupChange?.(false); setNewGroupName(''); }} className="text-xs [var(--text-tertiary)] hover:[var(--text-primary)] px-1.5 py-0.5 rounded hover:[var(--depth-3)]/50 transition-colors">✕</button>
         </div>
       ) : (
-        <button onClick={() => setShowNewGroup(true)} className="w-full text-xs [var(--text-tertiary)] hover:[var(--text-secondary)] py-1.5 text-left px-1.5 rounded-md hover:[var(--depth-2)]/30 transition-colors">
+        <button onClick={() => onShowNewGroupChange?.(true)} className="w-full text-xs [var(--text-tertiary)] hover:[var(--text-secondary)] py-1.5 text-left px-1.5 rounded-md hover:[var(--depth-2)]/30 transition-colors">
           + 新建分组
         </button>
       )}

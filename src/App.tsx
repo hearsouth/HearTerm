@@ -35,6 +35,7 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const mainRef = useRef<HTMLDivElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [showNewGroupInList, setShowNewGroupInList] = useState(false);
   const [toast, setToast] = useState<string>('');
   const [filePosition, setFilePosition] = useState<'right' | 'bottom'>(
     (localStorage.getItem('hear-file-pos') as 'right' | 'bottom') || 'right'
@@ -95,16 +96,39 @@ function App() {
 
   return (
     <div className="flex h-screen overflow-hidden" style={{background:'var(--depth-0)'}}>
-      {/* ── Sidebar ── */}
-      <div className="shrink-0 flex flex-row overflow-hidden" style={{width: sidebarOpen ? sidebarWidth : 0, transition: sidebarResizing.current ? 'none' : 'width 200ms'}}>
-        <div className="flex-1 flex flex-col min-h-0" style={{background:'var(--depth-1)'}}>
-          <div className="flex-1 flex flex-col p-4 min-h-0 overflow-y-auto">
-            <div className="flex items-center gap-2 mb-5 px-1">
-              <span className="text-base">⚡</span>
-              <span className="text-sm font-semibold tracking-tight" style={{color:'var(--text-primary)'}}>HearTerm</span>
-            </div>
-            <ConnectionList onNewConnection={()=>{setDialogKey(k=>k+1);setDialogOpen(true)}} onEditConnection={handleEditConnection} onConnect={handleConnect} />
-            <div className="mt-auto pt-3 space-y-1.5">
+      {/* ── Left column ── */}
+      <div className="flex flex-col shrink-0" style={{zIndex: 30}}>
+        {/* Fixed header (always visible) */}
+        <div data-tauri-drag-region className="flex items-center gap-2 px-3 select-none shrink-0" style={{
+          height: 40, width: sidebarOpen ? sidebarWidth : 'auto',
+          background:'var(--depth-1)', borderBottom:'1px solid var(--border-subtle)'
+        }}>
+          <div className="flex items-center gap-1.5 shrink-0" data-tauri-drag-region="false">
+            <button onClick={()=>getCurrentWindow().close()} className="w-2.5 h-2.5 rounded-full bg-red-500/80 hover:bg-red-400" />
+            <button onClick={()=>getCurrentWindow().minimize()} className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 hover:bg-yellow-400" />
+            <button onClick={()=>getCurrentWindow().toggleMaximize()} className="w-2.5 h-2.5 rounded-full bg-green-500/80 hover:bg-green-400" />
+          </div>
+          <button onClick={()=>setSidebarOpen(!sidebarOpen)}
+            className="text-xs px-1.5 py-1 rounded shrink-0 transition-colors"
+            style={{color:'var(--text-secondary)'}}>☰</button>
+          <span className="text-[11px] font-semibold tracking-wide" style={{color:'var(--text-primary)'}}>HearTerm</span>
+        </div>
+
+        {/* Collapsible sidebar content */}
+        <div className="relative overflow-hidden flex-1" style={{
+          width: sidebarOpen ? sidebarWidth : 0,
+          transition: sidebarResizing.current ? 'none' : 'width 0.25s ease',
+          minWidth: 0
+        }}>
+          <div className="h-full flex flex-col" style={{background:'var(--depth-1)', minWidth: sidebarWidth}}>
+          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto px-3 py-2">
+            <ConnectionList 
+              showNewGroup={showNewGroupInList}
+              onShowNewGroupChange={setShowNewGroupInList}
+              onNewConnection={()=>{setDialogKey(k=>k+1);setDialogOpen(true)}} 
+              onEditConnection={handleEditConnection} 
+              onConnect={handleConnect} />
+            <div className="mt-auto pt-3 border-t space-y-1.5" style={{borderColor:'var(--border-subtle)'}}>
               <button onClick={()=>{setDialogKey(k=>k+1);setDialogOpen(true)}}
                 className="w-full py-2 text-xs font-medium rounded-md transition-colors" style={{background:'var(--accent)',color:'#fff'}}>
                 新建连接
@@ -118,18 +142,18 @@ function App() {
             </div>
           </div>
         </div>
-        {/* Drag handle */}
-        <div onMouseDown={onSidebarResize}
-          className="w-[4px] shrink-0 cursor-col-resize transition-colors hover:bg-[var(--accent)]"
-          style={{background:'var(--border-subtle)'}} />
+        {/* Drag handle — absolute overlay on right edge, full height */}
+        {sidebarOpen && (
+          <div onMouseDown={onSidebarResize}
+            className="absolute top-0 bottom-0 right-0 w-[5px] cursor-col-resize transition-colors hover:bg-[var(--accent)] z-20"
+            style={{background:'transparent'}} />
+        )}
       </div>
-
-      {/* ── Main ── */}
+      </div>
       <div className="flex-1 flex flex-col min-w-0">
         {/* Titlebar */}
-        <div data-tauri-drag-region className="h-10 flex items-center px-4 shrink-0 gap-3 select-none"
+        <div data-tauri-drag-region className="h-10 flex items-center px-3 shrink-0 gap-2 select-none"
           style={{background:'var(--depth-1)', borderBottom:'1px solid var(--border-subtle)'}}>
-          <button onClick={()=>setSidebarOpen(!sidebarOpen)} className="text-sm leading-none transition-colors" style={{color:'var(--text-tertiary)'}}>☰</button>
           {activeConnectionId && (()=>{
             const tabs = getTabs(activeConnectionId); const idx = getTermIdx(activeConnectionId);
             return (
@@ -188,12 +212,6 @@ function App() {
                 </div>
               </>
             )}
-          </div>
-          {/* Window controls */}
-          <div className="flex items-center gap-2" data-tauri-drag-region="false">
-            <button onClick={()=>getCurrentWindow().minimize()} className="w-2.5 h-2.5 rounded-full bg-yellow-500/80 hover:bg-yellow-400" />
-            <button onClick={()=>getCurrentWindow().toggleMaximize()} className="w-2.5 h-2.5 rounded-full bg-green-500/80 hover:bg-green-400" />
-            <button onClick={()=>getCurrentWindow().close()} className="w-2.5 h-2.5 rounded-full bg-red-500/80 hover:bg-red-400" />
           </div>
         </div>
 

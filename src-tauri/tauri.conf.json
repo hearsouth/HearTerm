@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicepkg/vscode-tauri/main/schemas/tauri.conf.schema.json",
   "productName": "HearTerm",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "identifier": "com.hearterm.app",
   "build": {
     "frontendDist": "../dist",
